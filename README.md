@@ -2,6 +2,8 @@
 
 Em construção!!!!
 
+Link para o Wiki provisório no Google Docs: https://docs.google.com/document/d/1EQhcSTetLeN9m-Wg2VPWHpkp6hFaofIdgo6WmDVk0KA/edit?usp=sharing
+
 ## Table of contents
 * [Introdução](#introdução)
 * [Objetivos](#objetivos)
