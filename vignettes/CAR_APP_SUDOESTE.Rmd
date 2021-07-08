@@ -134,7 +134,7 @@ mapa_MUN<-readOGR(dsn="./data/LIMITE_MUN_JUNTOS",
 
 Transforma o sistema de coordenadas 
 
-Tah com problema no Sistema de coordenadas
+Tah com problema no Sistema de coordenadas, precisa corrigir. 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
   #reprojetar os obj para a mesma projeção (trocar para a mais adequada)
 #+proj=utm +zone=22 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
