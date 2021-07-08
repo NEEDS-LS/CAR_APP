@@ -1,0 +1,383 @@
+---
+title: "APPS SUDOESTE"
+author: "NEEDS"
+date: "05/2020"
+output: 
+  html_document:
+     
+    includes:
+      after_body: footer.html
+    keep_md: True
+    toc: True
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, echo=FALSE}
+inline_hook <- function(x) {
+  if (is.numeric(x)) {
+    format(x, digits = 2)
+  } else x
+}
+knitr::knit_hooks$set(inline = inline_hook)
+```
+
+
+```{r, "instala os pacotes", echo=FALSE}
+list.of.packages <- c("rgdal", "raster", "rgeos", "sf")
+
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) 
+
+install.packages(new.packages)
+```
+
+```{r, "executa os pacotes", message=FALSE, warning=FALSE, echo=FALSE}
+require(raster)
+require(rgdal)
+require(rgeos)
+#library(udunits2) Em alguns casos é necessário carregar este pacote manualmente
+require(sf)
+```
+
+Esse code chunk vai sair, pq as funções foram transformadas em funções independentes.
+```{r, "Funções", echo=FALSE, eval=FALSE}
+####Recorta e cria a área que precisa ser recuperada em micro propriedades
+
+makeUniform<-function(SPDF){
+  pref<-substitute(SPDF)  #just putting the file name in front.
+  newSPDF<-spChFIDs(SPDF,as.character(paste(pref,rownames(as(SPDF,"data.frame")),sep="_")))
+  return(newSPDF)
+}
+
+makeUniformID<-function(SPDF){
+  pref<-substitute(SPDF)  #just putting the file name in front.
+  newSPDF<-spChFIDs(SPDF,as.character(paste(pref,sapply(slot(SPDF, "polygons"), function(x) slot(x, "ID")),sep="_")))
+  return(newSPDF)
+}
+
+#dissolve os poligonos intersectados
+mergePoli<-function(buff){
+  
+  gt <- gIntersects(buff, byid = TRUE, returnDense = FALSE)
+  ut <- unique(gt)
+  nth <- 1:length(ut)
+  buff$n <- 1:nrow(buff)
+  buff$nth <- NA
+  for(i in 1:length(ut)){
+    x <- ut[[i]]
+    buff$nth[x] <- i
+  }
+  buffdis <- gUnaryUnion(buff, buff$nth)
+  return(buffdis)
+}
+
+areaRestaurar<-function(a.cons){
+  a.cons<-a.cons[a.cons@data$CLASSE_USO!="formação florestal" & 
+                    a.cons@data$CLASSE_USO!="formação não florestal",]
+
+  a.cons.merge<-mergePoli(a.cons)
+
+  a.cons.area<-gArea(a.cons.merge)/10000
+  return(a.cons.area)
+}
+
+areaVegetacao<-function(a.veg){
+  a.veg<-a.veg[a.veg@data$CLASSE_USO=="formação florestal" | 
+                    a.veg@data$CLASSE_USO=="formação não florestal",]
+
+  a.veg.merge<-mergePoli(a.veg)
+
+  a.veg.area<-gArea(a.veg.merge)/10000
+  return(a.veg.area)
+}
+#função para correção do erro de topologia após a criação e recorte do buffers.
+setPrecision<-function(sp){
+  sp_sf<-as(sp, "sf")
+  sp_sf_cast<-st_cast(sp_sf,"POLYGON")
+  
+  sp_sf_precision<-sp_sf_cast %>% st_set_precision(100) %>% st_make_valid()
+  sf_colect_poly<-st_collection_extract(sp_sf_precision, "POLYGON")
+  
+  #sp_exploded<-as(sf_colect_poly,"Spatial") #caso seja um SPDF
+  sp_exploded<-as_Spatial(sf_colect_poly$geom) #caso o objeto a ser corrigido seja um SP
+  return(sp_exploded)
+}
+```
+
+Carrega os mapas necessários #No pacote criar uma função para baixar do site da FBDS
+
+Dah com problema no sistema de coordenadas geograficas, e isso pode ser problema.
+```{r, "carrega os mapas", echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+######carrega os mapas necessários, trocar pelos mapas corretos para cada município
+mapa_CAR<-readOGR(dsn="./data_use",
+                  layer="ALL_CAR", use_iconv=TRUE, encoding="UTF-8")
+mapa_MDA<-readOGR(dsn="./data/FBDS_Hidrografia",
+                  layer="SP_3522307_MASSAS_DAGUA", use_iconv=TRUE,encoding="UTF-8")
+mapa_NAS<-readOGR(dsn="./data/FBDS_Hidrografia",
+                  layer="SP_3522307_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_RMS<-readOGR(dsn="./data/FBDS_Hidrografia",
+                  layer="SP_3522307_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_RMD<-readOGR(dsn="./data/FBDS_Hidrografia",
+                  layer="SP_3522307_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_USO<-readOGR(dsn="./data/FBDS_APP_USO_Municipios",
+                  layer="SP_3522307_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_MUN<-readOGR(dsn="./data/LIMITE_MUN_JUNTOS",
+                  layer="muni_ALPA", use_iconv=TRUE, encoding="UTF-8")
+
+```
+
+
+Transforma o sistema de coordenadas 
+
+Tah com problema no Sistema de coordenadas
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+  #reprojetar os obj para a mesma projeção (trocar para a mais adequada)
+#+proj=utm +zone=22 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
+    mapa_CAR <- spTransform(mapa_CAR, CRS("+init=epsg:31982"))
+    mapa_USO <- spTransform(mapa_USO, CRS("+init=epsg:31982"))
+    mapa_RMD <- spTransform(mapa_RMD, CRS("+init=epsg:31982"))
+    mapa_RMS <- spTransform(mapa_RMS, CRS("+init=epsg:31982"))
+    mapa_MDA <- spTransform(mapa_MDA, CRS("+init=epsg:31982"))
+    mapa_NAS <- spTransform(mapa_NAS, CRS("+init=epsg:31982"))
+    mapa_GEO <- spTransform(mapa_GEO, CRS("+init=epsg:31982"))
+    mapa_MUN <- spTransform(mapa_MUN, CRS("+init=epsg:31982"))
+```
+
+Seleciona massas d'água maiores do que 1 ha para gerar APP
+```{r, echo=FALSE}
+#Seleciona as massas d'água maiores que 1ha
+mapa_MDA<-mapa_MDA[mapa_MDA@data$AREA_HA > 1,]
+mapa_MDA<-gBuffer(mapa_MDA, byid=TRUE, width=0)
+```
+
+
+Isso deve ser pra acertar os poligonos do uso
+```{r}
+mapa_USO<-gBuffer(mapa_USO, byid=TRUE, width=0)
+```
+
+Isso aqui deve ser pra acertar as APPs de nascentes, só que só as de restauração é que são 15m se não me engano, as que estao protegidas continuam 50m, verificar.
+```{r, "APP de nascentes"}
+#Nascente é 15m de app para todas as propriedades
+nas_b<-gBuffer(mapa_NAS, byid=TRUE, width = 15)
+```
+
+Junta todas as hidrografias
+```{r, "Junta hidros"}
+mapa_hidro_pol<-gUnion(mapa_MDA, mapa_RMD)
+#mapa_hidro_pol<-mapa_MDA
+mapa_hidro<-gUnion(mapa_hidro_pol, mapa_RMS)
+```
+
+Não entendi o codigo abaixo, mas tenho uma vaga ideia do que ela deva estar fazendo.
+```{r}
+mapa_MUN[is.na(mapa_MUN@data$NOME_MUNI)]<-"Óleo"#essa linha é especifica para os dados do Alto Paranapanema.
+limite_mun<-mapa_MUN[mapa_MUN@data$NOME_MUN == "Itapetininga",] #Esta linha se refere ao limite do município.
+mapa_hidro<-gIntersection(mapa_hidro, limite_mun)#restringe os corpos d'água dentro dos municipios (houve casos que a hidrográfia da FBDS extrapolava os limites do município)
+mapa_CAR<-gIntersection(mapa_CAR, limite_mun)#No caso do Alto Paranapanema, todos os CARs foram colocados em um mesmo shp, de forma que quando uma propriedade ultrapasse os limites de um município ele seja contabilizado quando o próximo for recortado.
+```
+
+Função que Separa as propriedades por tamanhos já virou função separada e vai ser substituida pelo code chunk abaixo
+```{r, echo=FALSE}
+separaTamanho<-function(mapa_CAR){
+  
+  mapa_CAR<-gBuffer(mapa_CAR, byid=TRUE, width=0)
+
+  micro<-mapa_CAR[mapa_CAR@data$NUM_MODULO<1,]
+  pequena_1_2<-mapa_CAR[mapa_CAR@data$NUM_MODULO>=1 & mapa_CAR@data$NUM_MODULO<2,]
+  pequena_2_4<-mapa_CAR[mapa_CAR@data$NUM_MODULO>=2 & mapa_CAR@data$NUM_MODULO<4,]
+  media<-mapa_CAR[mapa_CAR@data$NUM_MODULO>=4 & mapa_CAR@data$NUM_MODULO<10,]
+  grande<-mapa_CAR[mapa_CAR@data$NUM_MODULO>=10,]
+
+  nm<-c("micro", "pequena_1_2", "pequena_2_4", "media", "grande")
+  lista<-list(micro, pequena_1_2, pequena_2_4, media, grande, "names" = nm)
+  return(lista)
+}
+```
+
+Separa as propriedades por tamanho em função do número de modulos fiscais
+```{r}
+props<-separaTamanho(mapa_CAR)
+
+micro<-props[[1]]
+peq12<-props[[2]]
+peq24<-props[[3]]
+media<-props[[4]]
+grand<-props[[5]]
+```
+
+
+```{r, echo=FALSE}
+micro_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=5)
+micro_app_original<-gUnion(micro_app_original, nas_b)
+micro_app_original<-gDifference(micro_app_original, mapa_hidro_pol)
+
+pequeno12_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=8)
+pequeno12_app_original<-gUnion(pequeno12_app_original, nas_b)
+pequeno12_app_original<-gDifference(pequeno12_app_original, mapa_hidro_pol)
+
+pequeno24_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=15)
+pequeno24_app_original<-gUnion(pequeno24_app_original, nas_b)
+pequeno24_app_original<-gDifference(pequeno24_app_original, mapa_hidro_pol)
+
+#Buffer para tamanho "médio" é diferente entre rios e massa d'água
+media_mda_rmd<-gBuffer(mapa_hidro_pol, byid=TRUE, width=30)
+media_rios<-gBuffer(mapa_RMS, byid=TRUE, width=20)
+media_app_original<-gUnion(media_mda_rmd, media_rios)
+media_app_original<-gUnion(media_app_original, nas_b)
+media_app_original<-gDifference(media_app_original, mapa_hidro_pol)
+
+grande_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=30)
+grande_app_original<-gUnion(grande_app_original, nas_b)
+grande_app_original<-gDifference(grande_app_original, mapa_hidro_pol)
+
+```
+
+
+```{r, "Buffer micro", echo=FALSE}
+#aplica a função que dissolve os poligonos que estejam com intersecções dentro da app 
+micro_app<-gIntersection(micro_app_original, micro)
+#micro_app<-micro_app@polyobj Em alguns casos o intersection deixa linhas soltas, neste caso esses objetos devem ser removidos manualmente. A grande maioria dos municípios não precisou.
+micro_app<-gBuffer(micro_app, byid=TRUE, width=0)
+micro_app<-raster::intersect(mapa_USO, micro_app)
+micro_app<-micro_app[micro_app@data$CLASSE_USO!="água",]
+
+#soma a área dos polígonos retornados pela resultado da função 
+micro_app_compl_area<-gArea(micro_app)/10000
+micro_restaurar_area<-areaRestaurar(micro_app)
+micro_vegetacao_area<-areaVegetacao(micro_app)
+```
+
+```{r, "Buffer pequena 1_2", echo=FALSE}
+pequeno12_app<-gIntersection(pequeno12_app_original, pequena_1_2)
+pequeno12_app<-gBuffer(pequeno12_app, byid=TRUE, width=0)
+pequeno12_app<-raster::intersect(mapa_USO, pequeno12_app)
+pequeno12_app<-pequeno12_app[pequeno12_app@data$CLASSE_USO!="água"]
+
+pequeno12_app_compl_area<-gArea(pequeno12_app)/10000
+pequeno12_restaurar_area<-areaRestaurar(pequeno12_app)
+pequeno12_vegetacao_area<-areaVegetacao(pequeno12_app)
+```
+
+```{r, "Buffer pequena 2_4", echo=FALSE}
+pequeno24_app<-gIntersection(pequeno24_app_original, pequena_2_4)
+pequeno24_app<-gBuffer(pequeno24_app, byid=TRUE, width=0)
+#pequeno24_app_t<-setPrecision(pequeno24_app) #com a aplicação do buffer alguns poligonos precisam ser ajustados. A aplicação dessa função vai depender do caso, a grande maioria não precisa.
+pequeno24_app<-raster::intersect(mapa_USO, pequeno24_app)
+pequeno24_app<-pequeno24_app[pequeno24_app@data$CLASSE_USO!="água",]
+
+#soma a área dos polígonos retornados pela resultado da função 
+pequeno24_restaurar_area<-areaRestaurar(pequeno24_app)
+pequeno24_vegetacao_area<-areaVegetacao(pequeno24_app)
+pequeno24_app_compl_area<-gArea(pequeno24_app)/10000
+```
+
+```{r, "Buffer média", echo=FALSE}
+media_app<-gIntersection(media_app_original, media)
+media_app<-gBuffer(media_app, byid=TRUE, width=0)
+media_app<-raster::intersect(mapa_USO, media_app)
+media_app<-media_app[media_app@data$CLASSE_USO!="água",]
+
+#soma a área dos polígonos retornados pela resultado da função 
+media_app_compl_area<-gArea(media_app)/10000
+media_restaurar_area<-areaRestaurar(media_app)
+media_vegetacao_area<-areaVegetacao(media_app)
+```
+
+```{r, "Buffer grande", echo=FALSE}
+grande_app<-gIntersection(grande_app_original, grande)
+grande_app<-gBuffer(grande_app, byid=TRUE, width=0)
+#grande_app_t<-setPrecision(grande_app)
+grande_app<-raster::intersect(mapa_USO, grande_app)
+grande_app<-grande_app[grande_app@data$CLASSE_USO!="água",]
+
+#soma a área dos polígonos retornados pela resultado da função 
+grande_app_compl_area<-gArea(grande_app)/10000
+grande_restaurar_area<-areaRestaurar(grande_app)
+grande_vegetacao_area<-areaVegetacao(grande_app)
+```
+
+```{r, "Cenário 1", echo=FALSE}
+#cenario 1: o que existe no car
+
+soma_cenario_1_app<-micro_app_compl_area+pequeno24_app_compl_area+pequeno12_app_compl_area+grande_app_compl_area+media_app_compl_area
+
+soma_cenario_1_veg<-micro_vegetacao_area+pequeno12_vegetacao_area+pequeno24_vegetacao_area+grande_vegetacao_area+media_vegetacao_area
+
+soma_cenario_1_res<-micro_restaurar_area+pequeno24_restaurar_area+pequeno12_restaurar_area+grande_restaurar_area+media_restaurar_area
+```
+
+```{r, "Cenário 2", echo=FALSE}
+#Cenario 2: O mais conservador, considera todas as áreas de APP sem CAR como micro propriedades
+#mapa_CAR<-setPrecision(mapa_CAR)
+out_allmicro<-gDifference(micro_app_original, mapa_CAR)
+out_allmicro<-gBuffer(out_allmicro, byid=TRUE, width=0)
+out_allmicro<-raster::intersect(mapa_USO, out_allmicro)
+out_allmicro<-out_allmicro[out_allmicro@data$CLASSE_USO!="água",]
+out_allmicro<-makeUniform(out_allmicro)
+out_allmicro_app_compl_area<-gArea(out_allmicro)/10000
+
+out_allmicro_restaurar_area<-areaRestaurar(out_allmicro)
+out_allmicro_vegetacao_area<-areaVegetacao(out_allmicro)
+
+soma_cenario_2_app<-soma_cenario_1_app+out_allmicro_app_compl_area
+soma_cenario_2_veg<-soma_cenario_1_veg+out_allmicro_vegetacao_area
+soma_cenario_2_res<-soma_cenario_1_res+out_allmicro_restaurar_area
+
+```
+
+```{r, "Cenário 3", echo=FALSE}
+#Cenario 3: O mais otimista, considera todas as áreas de APP sem CAR como grande propriedades
+
+out_allbig<-gDifference(grande_app_original, mapa_CAR)
+out_allbig<-gBuffer(out_allbig, byid=TRUE, width=0)
+out_allbig<-raster::intersect(mapa_USO, out_allbig)
+
+out_allbig<-out_allbig[out_allbig@data$CLASSE_USO!="água",]
+out_allbig<-makeUniform(out_allbig)
+out_allbig_app_compl_area<-gArea(out_allbig)/10000
+
+out_allbig_restaurar_area<-areaRestaurar(out_allbig)
+out_allbig_vegetacao_area<-areaVegetacao(out_allbig)
+
+soma_cenario_3_app<-soma_cenario_1_app+out_allbig_app_compl_area
+soma_cenario_3_veg<-soma_cenario_1_veg+out_allbig_vegetacao_area
+soma_cenario_3_res<-soma_cenario_1_res+out_allbig_restaurar_area
+
+```
+
+
+*Cenário 1*: Compreende a soma das áreas que precisam ser restauradas dentro das áreas conhecidas (áreas com CAR), dependendo do tamanho da propriedade (micro, pequena 1 a 2 módulos, pequena 2 a 4 módulos, média e grande). Dessa forma temos:
+
+* Área para restaurar em micro propriedades: `r micro_restaurar_area` ha do total de `r micro_app_compl_area` ha existentes nesta classe.
+
+* Área para restaurar em pequenas propriedades (1 a 2 módulos): `r pequeno12_restaurar_area` ha do total de `r pequeno12_app_compl_area` ha existentes nesta classe.
+
+* Área para restaurar em pequenas propriedades (2 a 4 módulos): `r pequeno24_restaurar_area` ha do total de `r pequeno24_app_compl_area` ha existentes nesta classe.
+
+* Área para restaurar em médias propriedades: `r media_restaurar_area` ha do total de `r media_app_compl_area` ha existentes nesta classe.
+
+* Área para restaurar em grande propriedades: `r grande_restaurar_area` ha do total de `r grande_app_compl_area` ha existentes nesta classe.
+
+Finalizando O total de área a ser recuperada no Cenário 1 é `r soma_cenario_1_res` ha de `r soma_cenario_1_app` ha
+
+#######################################################################################################################################
+
+*Cenário 2*: Compreende na soma das areas conhecidas (Cenário 1) com as áreas em branco (sem CAR), considerando que todas as propriedades ali existentes são micro (até 1 módulo). Tendo como resultado:
+
+* Área para restauração existente quando consideramos como micro as áreas brancas: `r out_allmicro_restaurar_area` ha de `r out_allmicro_app_compl_area` ha totais
+
+Dessa forma a área total a ser restaurada nesse Cenário é: `r soma_cenario_2_res` ha de `r soma_cenario_2_app` ha
+
+#######################################################################################################################################
+
+*Cenário 3*: Compreende na soma das areas conhecidas (Cenário 1) com as áreas em branco (sem CAR), considerando que todas as propriedades ali existentes são grandes (mais de 10 módulos). Tendo como resultado:
+
+* Área para restauração existente quando consideramos como micro as áreas brancas: `r out_allbig_restaurar_area` ha de `r out_allbig_app_compl_area` ha totais
+
+Dessa forma a área total a ser restaurada nesse Cenário é: `r soma_cenario_3_res` ha de `r soma_cenario_3_app` ha

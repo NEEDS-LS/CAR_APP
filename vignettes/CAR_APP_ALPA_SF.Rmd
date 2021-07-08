@@ -1,0 +1,388 @@
+---
+title: "APPS SUDOESTE"
+author: "NEEDS"
+date: "05/2020"
+output: 
+  html_document:
+     
+    includes:
+      after_body: footer.html
+    keep_md: True
+    toc: True
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, echo=FALSE}
+inline_hook <- function(x) {
+  if (is.numeric(x)) {
+    format(x, digits = 2)
+  } else x
+}
+knitr::knit_hooks$set(inline = inline_hook)
+```
+
+```{r, "instala os pacotes", echo=FALSE}
+list.of.packages <- c("rgdal", "raster", "rgeos", "fields", "sf")
+
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) 
+
+install.packages(new.packages)
+```
+
+```{r, "executa os pacotes", message=FALSE, warning=FALSE, echo=FALSE}
+
+library(udunits2)
+require(tidyverse)
+require(sf)
+require(rgdal)
+
+```
+
+```{r}
+####Recorta e cria a área que precisa ser recuperada em micro propriedades
+
+makeUniform<-function(SPDF){
+  pref<-substitute(SPDF)  #just putting the file name in front.
+  newSPDF<-spChFIDs(SPDF,as.character(paste(pref,rownames(as(SPDF,"data.frame")),sep="_")))
+  return(newSPDF)
+}
+makeUniformID<-function(SPDF){
+  pref<-substitute(SPDF)  #just putting the file name in front.
+  newSPDF<-spChFIDs(SPDF,as.character(paste(pref,sapply(slot(SPDF, "polygons"), function(x) slot(x, "ID")),sep="_")))
+  return(newSPDF)
+}
+
+#dissolve os poligonos intersectados
+mergePoli<-function(buff){
+  
+  gt <- gIntersects(buff, byid = TRUE, returnDense = FALSE)
+  ut <- unique(gt)
+  nth <- 1:length(ut)
+  buff$n <- 1:nrow(buff)
+  buff$nth <- NA
+  for(i in 1:length(ut)){
+    x <- ut[[i]]
+    buff$nth[x] <- i
+  }
+  buffdis <- gUnaryUnion(buff, buff$nth)
+  return(buffdis)
+}
+
+areaRestaurar<-function(a.cons){
+  a.cons<-a.cons[a.cons@data$CLASSE_USO!="formação florestal" & 
+                    a.cons@data$CLASSE_USO!="formação não florestal",]
+
+  a.cons.merge<-mergePoli(a.cons)
+
+  a.cons.area<-gArea(a.cons.merge)/10000
+  return(a.cons.area)
+}
+
+areaVegetacao<-function(a.veg){
+  a.veg<-a.veg[a.veg@data$CLASSE_USO=="formação florestal" | 
+                    a.veg@data$CLASSE_USO=="formação não florestal",]
+
+  a.veg.merge<-mergePoli(a.veg)
+
+  a.veg.area<-gArea(a.veg.merge)/10000
+  return(a.veg.area)
+}
+
+setPrecision<-function(sp){
+  sp_sf<-as(sp, "sf")
+  sp_sf_cast<-st_cast(sp_sf,"POLYGON")
+  
+  sp_sf_precision<-sp_sf_cast %>% st_set_precision(100) %>% st_make_valid()
+  sf_colect_poly<-st_collection_extract(sp_sf_precision, "POLYGON")
+  
+  #sp_exploded<-as(sf_colect_poly,"Spatial") #caso seja um SPDF
+  sp_exploded<-as_Spatial(sf_colect_poly$geom) #caso o objeto a ser corrigido seja um SP
+  return(sp_exploded)
+}
+```
+
+```{r, "carrega os mapas", echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+######carrega os mapas necessários
+mapa_CAR<-st_read("./DATA_USE/CAR/Itapetininga",
+                  layer="AREA_IMOVEL", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_MDA<-st_read("./DATA_USE/FBDS_Hidrografia",
+                  layer="SP_3522307_MASSAS_DAGUA", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_NAS<-st_read("./DATA_USE/FBDS_Hidrografia",
+                  layer="SP_3522307_NASCENTES", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_RMS<-st_read("./DATA_USE/FBDS_Hidrografia",
+                  layer="SP_3522307_RIOS_SIMPLES",
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_RMD<-st_read("./DATA_USE/FBDS_Hidrografia",
+                  layer="SP_3522307_RIOS_DUPLOS", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_USO<-st_read("./DATA_USE/FBDS_APP_USO_Municipios",
+                  layer="SP_3522307_USO", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_GEO<-st_read("./DATA_USE",
+                  layer="Geomorf_sudoeste", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_MUN<-st_read("./DATA_USE/LIMITE_MUN_JUNTOS",
+                  layer="muni_ALPA", 
+                  options = "ENCODING=WINDOWS-1252")
+
+```
+
+```{r, "carrega os mapas- TESTE", echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+######carrega os mapas necessários
+mapa_CAR<-st_read("./DATA_USE/CAR/CMA",
+                  layer="AREA_IMOVEL", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_MDA<-st_read("./DATA_USE/FBDS_Hidrografia",
+                  layer="SP_3509452_MASSAS_DAGUA", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_NAS<-st_read("./DATA_USE/FBDS_Hidrografia",
+                  layer="SP_3509452_NASCENTES", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_RMS<-st_read("./DATA_USE/FBDS_Hidrografia",
+                  layer="SP_3509452_RIOS_SIMPLES",
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_RMD<-st_read("./DATA_USE/FBDS_Hidrografia",
+                  layer="SP_3509452_RIOS_DUPLOS", 
+                  options = "ENCODING=WINDOWS-1252")
+
+mapa_USO<-st_read("./DATA_USE/FBDS_APP_USO_Municipios",
+                  layer="SP_3509452_USO", 
+                  options = "ENCODING=WINDOWS-1252")
+
+#mapa_GEO<-st_read("./DATA_USE",
+#                  layer="Geomorf_sudoeste", 
+#                  options = "ENCODING=WINDOWS-1252")
+
+#mapa_MUN<-st_read("./DATA_USE/LIMITE_MUN_JUNTOS",
+#                  layer="muni_ALPA", 
+#                  options = "ENCODING=WINDOWS-1252")
+
+```
+
+
+```{r, "reprojetar os obj para a mesma projeção (trocar para a mais adequada)", echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+  #reprojetar os obj para a mesma projeção (trocar para a mais adequada)
+
+    mapa_CAR <- st_transform(mapa_CAR, 31982)
+    mapa_USO <- st_transform(mapa_USO, 31982)
+    mapa_RMD <- st_transform(mapa_RMD, 31982)
+    mapa_RMS <- st_transform(mapa_RMS, 31982)
+    mapa_MDA <- st_transform(mapa_MDA, 31982)
+    mapa_NAS <- st_transform(mapa_NAS, 31982)
+#    mapa_GEO <- st_transform(mapa_GEO, 31982)
+#    mapa_MUN <- st_transform(mapa_MUN, 31982)
+```
+
+```{r, "Separa as propriedades por tamanhos", echo=FALSE}
+
+#Separa as propriedades por tamanhos
+mapa_CAR<-st_buffer(mapa_CAR, 0)
+
+micro<-mapa_CAR[mapa_CAR$NUM_MODULO<1,]
+pequena_1_2<-mapa_CAR[mapa_CAR$NUM_MODULO>=1 & mapa_CAR$NUM_MODULO<2,]
+pequena_2_4<-mapa_CAR[mapa_CAR$NUM_MODULO>=2 & mapa_CAR$NUM_MODULO<4,]
+media<-mapa_CAR[mapa_CAR$NUM_MODULO>=4 & mapa_CAR$NUM_MODULO<10,]
+grande<-mapa_CAR[mapa_CAR$NUM_MODULO>=10,]
+```
+
+```{r, "unifica as hidrografias", echo=FALSE,}
+#Seleciona as massas d'água maiores que 1ha
+mapa_MDA<-mapa_MDA[mapa_MDA$AREA_HA > 1,] 
+mapa_MDA<-st_buffer(mapa_MDA, 0)
+
+mapa_USO<-st_buffer(mapa_USO, 0)
+
+#Nascente é 15m de app para todas as propriedades
+nas_b<-st_buffer(mapa_NAS, 15)
+plot(mapa_hidro$geometry)
+#juntando todas as hidrografias
+mapa_hidro_pol<-st_union(mapa_MDA, mapa_RMD) 
+#mapa_hidro_pol<-mapa_MDA
+mapa_hidro<-st_union(mapa_hidro_pol, mapa_RMS)
+
+```
+
+```{r, echo=FALSE}
+micro_app_original<-st_buffer(mapa_hidro, 5)
+micro_app_original<-st_difference(micro_app_original, mapa_hidro_pol)
+micro_app_original<-st_union(micro_app_original, nas_b)
+
+
+
+pequeno12_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=8)
+pequeno12_app_original<-gUnion(pequeno12_app_original, nas_b)
+pequeno12_app_original<-gDifference(pequeno12_app_original, mapa_hidro_pol)
+
+pequeno24_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=15)
+pequeno24_app_original<-gUnion(pequeno24_app_original, nas_b)
+pequeno24_app_original<-gDifference(pequeno24_app_original, mapa_hidro_pol)
+
+#Buffer para tamanho "médio" é diferente entre rios e massa d'água
+media_mda_rmd<-gBuffer(mapa_hidro_pol, byid=TRUE, width=30)
+media_rios<-gBuffer(mapa_RMS, byid=TRUE, width=20)
+media_app_original<-gUnion(media_mda_rmd, media_rios)
+media_app_original<-gUnion(media_app_original, nas_b)
+media_app_original<-gDifference(media_app_original, mapa_hidro_pol)
+
+grande_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=30)
+grande_app_original<-gUnion(grande_app_original, nas_b)
+grande_app_original<-gDifference(grande_app_original, mapa_hidro_pol)
+
+```
+
+```{r, "Cenário 4", echo=FALSE}
+#Cenario 4: áreas em branco separadas pela geomorfologia (planalto e depressão) e calculado de acordo com a proporção de propriedades nestas situações.
+
+#separa planalto e depressão
+geo_planalto<- mapa_GEO[mapa_GEO@data$NIVEL_2 == "planaltos" | 
+                 mapa_GEO@data$NIVEL_2 == "planalto centro ocidental indiferenciado",]
+geo_depressao<-mapa_GEO[mapa_GEO@data$NIVEL_2 == "depressao indiferenciada",]
+
+
+
+#separando pequena_1_2 do total de buffer=8
+app_uso_b08<-gDifference(pequeno12_app_original, mapa_CAR)
+app_uso_b08<-gBuffer(app_uso_b08, byid=TRUE, width=0)
+app_uso_b08<-raster::intersect(mapa_USO, app_uso_b08)
+app_uso_b08<-app_uso_b08[app_uso_b08@data$CLASSE_USO != "água",]
+app_uso_b08<-makeUniform(app_uso_b08)
+
+#separando pequena_2_4 do total de buffer=15
+app_uso_b15<-gDifference(pequeno24_app_original, mapa_CAR)
+app_uso_b15<-gBuffer(app_uso_b15, byid=TRUE, width=0)
+app_uso_b15<-raster::intersect(mapa_USO, app_uso_b15)
+app_uso_15<-app_uso_b15[app_uso_b15@data$CLASSE_USO != "água",]
+app_uso_15<-makeUniform(app_uso_15)
+
+#separando média do total
+app_uso_b20<-gDifference(media_app_original, mapa_CAR)
+app_uso_b20<-gBuffer(app_uso_b20, byid=TRUE, width=0)
+app_uso_b20<-raster::intersect(mapa_USO, app_uso_b20)
+app_uso_20<-app_uso_b20[app_uso_b20@data$CLASSE_USO != "água",]
+app_uso_20<-makeUniform(app_uso_20)
+
+#verifica se existe área de planalto e depressão no municipio
+mapa_MUN<-mapa_MUN[mapa_MUN@data$NM_MUN=="Itaber5",]
+mun_pla<-gIntersects(geo_planalto, mapa_MUN)
+mun_dep<-gIntersects(geo_depressao,mapa_MUN)
+
+#setando as variaveis para que não exista erro no knit
+out_micro_pla<-"NA"
+out_micro_dep<-"NA"
+out_p12_pla<-"NA"
+out_p12_dep<-"NA"
+out_p24_pla<-"NA"
+out_p24_dep<-"NA"
+out_med_pla<-"NA"
+out_med_dep<-"NA"
+out_grande_pla<-"NA"
+out_grande_dep<-"NA"
+
+```
+
+```{r,"Cenário 4-Planalto", echo=FALSE}
+if(mun_pla==TRUE){
+  #separando micro do total de buffer=5 a restaurar, feito no cenario 2
+  app_uso_pla<-raster::intersect(out_allmicro, geo_planalto)
+  pla_restaurar_area<-areaRestaurar(app_uso_pla)
+  pla_veg_area<-areaVegetacao(app_uso_pla)
+  out_micro_pla<-pla_restaurar_area*0.0888
+  out_vegmicro_pla<-pla_veg_area*0.888
+  
+  #separando pequena_1_2 do total de buffer=8, subtraindo da anterior
+  app8_uso_pla<-raster::intersect(app_uso_b08, geo_planalto)
+  pla8_restaurar_area<-areaRestaurar(app8_uso_pla)
+  pla8_restaurar_area<-pla8_restaurar_area - out_micro_pla
+  out_p12_pla<-pla8_restaurar_area*0.098
+  out_all_pla<-out_micro_pla+out_p12_pla
+
+  #separando pequena_2_4 do total de buffer=15, subtraindo a proporção anterior
+  app15_uso_pla<-raster::intersect(app_uso_15, geo_planalto)
+  pla15_restaurar_area<-areaRestaurar(app15_uso_pla)
+  pla15_restaurar_area<-pla15_restaurar_area - out_all_pla
+  out_p24_pla<-pla15_restaurar_area*0.1146
+  out_all_pla<-out_all_pla+out_p24_pla
+
+  #separando média do total, subtraindo a proporção anterior
+  app20_uso_pla<-raster::intersect(app_uso_b20, geo_planalto)
+  pla20_restaurar_area<-areaRestaurar(app20_uso_pla)
+  pla20_restaurar_area<-pla20_restaurar_area - out_all_pla
+  out_med_pla<-pla20_restaurar_area*0.1436
+  out_all_pla<-out_all_pla+out_med_pla
+
+  #por fim, as grandes
+  app30_uso_pla<-raster::intersect(out_allbig, geo_planalto)
+  pla30_restaurar_area<-areaRestaurar(app30_uso_pla)
+  pla30_restaurar_area<-pla30_restaurar_area - out_all_pla
+  out_grande_pla<-pla30_restaurar_area*0.555
+  out_all_pla<-out_all_pla+out_grande_pla
+}else{
+  out_all_pla<-0.001
+}
+```
+
+```{r, "Cenário 4-Depressão", echo=FALSE}
+if(mun_dep==TRUE){
+  #separando micro do total de buffer=5 a restaurar, feito no cenario 2
+  app_uso_dep<-raster::intersect(out_allmicro, geo_depressao)
+  dep_restaurar_area<-areaRestaurar(app_uso_dep)
+  out_micro_dep<-dep_restaurar_area*0.0365
+
+  #separando pequena_1_2 do total de buffer=8, subtraindo da anterior
+  app8_uso_dep<-raster::intersect(app_uso_b08, geo_depressao)
+  dep8_restaurar_area<-areaRestaurar(app8_uso_dep)
+  dep8_restaurar_area<-dep8_restaurar_area - out_micro_dep
+  out_p12_dep<-dep8_restaurar_area*0.0514
+  out_all_dep<-out_p12_dep+out_micro_dep
+
+  #separando pequena_2_4 do total de buffer=15, subtraindo a proporção anterior
+  app15_uso_dep<-raster::intersect(app_uso_15, geo_depressao)
+  dep15_restaurar_area<-areaRestaurar(app15_uso_dep)
+  dep15_restaurar_area<-dep15_restaurar_area - out_all_dep
+  out_p24_dep<-dep15_restaurar_area*0.0752
+  out_all_dep<-out_p24_dep+out_all_dep
+
+  #separando média do total, subtraindo a proporção anterior
+  app20_uso_dep<-raster::intersect(app_uso_b20, geo_depressao)
+  dep20_restaurar_area<-areaRestaurar(app20_uso_dep)
+  dep20_restaurar_area<-dep20_restaurar_area - out_all_dep
+  out_med_dep<-dep20_restaurar_area*0.1426
+  out_all_dep<-out_med_dep+out_all_dep
+
+  #por fim, as grandes
+  app30_uso_dep<-raster::intersect(out_allbig, geo_depressao)
+  dep30_restaurar_area<-areaRestaurar(app30_uso_dep)
+  dep30_restaurar_area<-dep30_restaurar_area - out_all_dep
+  out_grande_dep<-dep30_restaurar_area*0.6942
+  out_all_dep<-out_all_dep+out_grande_dep
+}else{
+  out_all_dep<-0.001
+}
+```
+
+```{r, "Cenário 4 - Resultado", echo=FALSE}
+
+soma_cenario_4<-soma_cenario_1_res+out_all_pla+out_all_dep
+
+```

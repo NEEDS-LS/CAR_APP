@@ -1,0 +1,231 @@
+---
+title: "Comb_Maps_APP"
+author: "JCLAraujo"
+date: "21/09/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, "executa os pacotes", message=FALSE, warning=FALSE, echo=FALSE}
+
+require(raster)
+require(rgdal)
+require(rgeos)
+
+ff <- list.files(path = "./DATA_USE/FBDS_Hidrografia",
+                 pattern="*MASSAS_DAGUA.shp$",
+                 full.names=TRUE)
+
+list_mun<-lapply(ff, function (x){
+  for (i in 1:length(x)){
+   readOGR(x)
+  }
+})
+
+
+
+```
+
+```{r, "carrega os mapas", echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+######carrega os mapas necessários
+
+
+
+####################################################################################################################################
+
+mapa_mda_BDA<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3505005_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_BSI<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3507159_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_BUR<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3508009_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_CAB<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3510203_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_COM<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3512605_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_GUA<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3517604_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_ITB<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3521705_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_ITP<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3522406_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_ITO<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3522802_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_ITR<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3523206_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_NOV<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3532827_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_RIG<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3543253_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_RIV<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3543501_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_TAQ<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3553807_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+mapa_mda_TAU<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3553856_MASSAS_DAGUA", use_iconv=TRUE, encoding="UTF-8")
+
+####################################################################################################################################
+
+mapa_nas_BDA<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3505005_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_BSI<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3507159_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_BUR<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3508009_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_CAB<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3510203_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_COM<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3512605_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_GUA<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3517604_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_ITB<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3521705_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_ITP<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3522406_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_ITO<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3522802_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_ITR<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3523206_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_NOV<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3532827_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_RIG<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3543253_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_RIV<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3543501_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_TAQ<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3553807_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_nas_TAU<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3553856_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+
+####################################################################################################################################
+
+mapa_rms_BDA<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3505005_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_BSI<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3507159_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_BUR<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3508009_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_CAB<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3510203_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_COM<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3512605_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_GUA<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3517604_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_ITB<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3521705_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_ITP<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3522406_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_ITO<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3522802_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_ITR<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3523206_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_NOV<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3532827_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_RIG<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3543253_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_RIV<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3543501_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_TAQ<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3553807_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_rms_TAU<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3553856_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+
+###################################################################################################################################
+
+mapa_rmd_BDA<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3505005_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_BUR<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3508009_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_CAB<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3510203_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_COM<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3512605_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_GUA<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3517604_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_ITB<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3521705_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_ITP<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3522406_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_ITO<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3522802_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_ITR<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3523206_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_NOV<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3532827_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_RIG<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3543253_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_RIV<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3543501_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_TAQ<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3553807_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_rmd_TAU<-readOGR(dsn="./DATA_USE/FBDS_Hidrografia",layer="SP_3553856_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+
+####################################################################################################################################
+
+mapa_uso_BDA<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3505005_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_BSI<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3507159_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_BUR<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3508009_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_CAB<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3510203_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_COM<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3512605_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_GUA<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3517604_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_ITB<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3521705_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_ITP<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3522406_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_ITO<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3522802_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_ITR<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3523206_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_NOV<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3532827_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_RIG<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3543253_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_RIV<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3543501_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_TAQ<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3553807_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_uso_TAU<-readOGR(dsn="./DATA_USE/FBDS_APP_USO_Municipios",layer="SP_3553856_USO", use_iconv=TRUE, encoding="UTF-8")
+
+###################################################################################################################################
+
+mapa_geo<-readOGR(dsn="./DATA_USE",layer="Geomorf_sudoeste", use_iconv=TRUE, encoding="UTF-8")
+mapa_geo<-spTransform(mapa_geo, CRS("+init=epsg:31982"))
+mapa_MUN<-readOGR(dsn="./DATA_USE/LIMITE_MUN_JUNTOS",layer="ALL_MUN", use_iconv=TRUE, encoding="UTF-8")
+mapa_MUN<-spTransform(mapa_MUN, CRS("+init=epsg:31982"))
+
+```
+
+```{r, "muda a projeção"}
+
+mapa_CAR_BDA<-spTransform(mapa_CAR_BDA, CRS("+init=epsg:31982"))
+mapa_CAR_BSI<-spTransform(mapa_CAR_BSI, CRS("+init=epsg:31982"))
+mapa_CAR_BUR<-spTransform(mapa_CAR_BUR, CRS("+init=epsg:31982"))
+mapa_CAR_CAB<-spTransform(mapa_CAR_CAB, CRS("+init=epsg:31982"))
+mapa_CAR_COM<-spTransform(mapa_CAR_COM, CRS("+init=epsg:31982"))
+mapa_CAR_GUA<-spTransform(mapa_CAR_GUA, CRS("+init=epsg:31982"))
+mapa_CAR_ITB<-spTransform(mapa_CAR_ITB, CRS("+init=epsg:31982"))
+mapa_CAR_ITP<-spTransform(mapa_CAR_ITP, CRS("+init=epsg:31982"))
+mapa_CAR_ITO<-spTransform(mapa_CAR_ITO, CRS("+init=epsg:31982"))
+mapa_CAR_ITR<-spTransform(mapa_CAR_ITR, CRS("+init=epsg:31982"))
+mapa_CAR_NOV<-spTransform(mapa_CAR_NOV, CRS("+init=epsg:31982"))
+mapa_CAR_RIG<-spTransform(mapa_CAR_RIG, CRS("+init=epsg:31982"))
+mapa_CAR_RIV<-spTransform(mapa_CAR_RIV, CRS("+init=epsg:31982"))
+mapa_CAR_TAQ<-spTransform(mapa_CAR_TAQ, CRS("+init=epsg:31982"))
+mapa_CAR_TAU<-spTransform(mapa_CAR_TAU, CRS("+init=epsg:31982"))
+
+####################################################################################################################################
+
+mapa_mda_BDA<-spTransform(mapa_mda_BDA, CRS("+init=epsg:31982"))
+mapa_mda_BSI<-spTransform(mapa_mda_BSI, CRS("+init=epsg:31982"))
+mapa_mda_BUR<-spTransform(mapa_mda_BUR, CRS("+init=epsg:31982"))
+mapa_mda_CAB<-spTransform(mapa_mda_CAB, CRS("+init=epsg:31982"))
+mapa_mda_COM<-spTransform(mapa_mda_COM, CRS("+init=epsg:31982"))
+mapa_mda_GUA<-spTransform(mapa_mda_GUA, CRS("+init=epsg:31982"))
+mapa_mda_ITB<-spTransform(mapa_mda_ITB, CRS("+init=epsg:31982"))
+mapa_mda_ITP<-spTransform(mapa_mda_ITP, CRS("+init=epsg:31982"))
+mapa_mda_ITO<-spTransform(mapa_mda_ITO, CRS("+init=epsg:31982"))
+mapa_mda_ITR<-spTransform(mapa_mda_ITR, CRS("+init=epsg:31982"))
+mapa_mda_NOV<-spTransform(mapa_mda_NOV, CRS("+init=epsg:31982"))
+mapa_mda_RIG<-spTransform(mapa_mda_RIG, CRS("+init=epsg:31982"))
+mapa_mda_RIV<-spTransform(mapa_mda_RIV, CRS("+init=epsg:31982"))
+mapa_mda_TAQ<-spTransform(mapa_mda_TAQ, CRS("+init=epsg:31982"))
+mapa_mda_TAU<-spTransform(mapa_mda_TAU, CRS("+init=epsg:31982"))
+
+####################################################################################################################################
+
+mapa_nas_BDA<-spTransform(mapa_nas_BDA, CRS("+init=epsg:31982"))
+mapa_nas_BSI<-spTransform(mapa_nas_BSI, CRS("+init=epsg:31982"))
+mapa_nas_BUR<-spTransform(mapa_nas_BUR, CRS("+init=epsg:31982"))
+mapa_nas_CAB<-spTransform(mapa_nas_CAB, CRS("+init=epsg:31982"))
+mapa_nas_COM<-spTransform(mapa_nas_COM, CRS("+init=epsg:31982"))
+mapa_nas_GUA<-spTransform(mapa_nas_GUA, CRS("+init=epsg:31982"))
+mapa_nas_ITB<-spTransform(mapa_nas_ITB, CRS("+init=epsg:31982"))
+mapa_nas_ITP<-spTransform(mapa_nas_ITP, CRS("+init=epsg:31982"))
+mapa_nas_ITO<-spTransform(mapa_nas_ITO, CRS("+init=epsg:31982"))
+mapa_nas_ITR<-spTransform(mapa_nas_ITR, CRS("+init=epsg:31982"))
+mapa_nas_NOV<-spTransform(mapa_nas_NOV, CRS("+init=epsg:31982"))
+mapa_nas_RIG<-spTransform(mapa_nas_RIG, CRS("+init=epsg:31982"))
+mapa_nas_RIV<-spTransform(mapa_nas_RIV, CRS("+init=epsg:31982"))
+mapa_nas_TAQ<-spTransform(mapa_nas_TAQ, CRS("+init=epsg:31982"))
+mapa_nas_TAU<-spTransform(mapa_nas_TAU, CRS("+init=epsg:31982"))
+
+####################################################################################################################################
+
+mapa_rms_BDA<-spTransform(mapa_rms_BDA, CRS("+init=epsg:31982"))
+mapa_rms_BSI<-spTransform(mapa_rms_BSI, CRS("+init=epsg:31982"))
+mapa_rms_BUR<-spTransform(mapa_rms_BUR, CRS("+init=epsg:31982"))
+mapa_rms_CAB<-spTransform(mapa_rms_CAB, CRS("+init=epsg:31982"))
+mapa_rms_COM<-spTransform(mapa_rms_COM, CRS("+init=epsg:31982"))
+mapa_rms_GUA<-spTransform(mapa_rms_GUA, CRS("+init=epsg:31982"))
+mapa_rms_ITB<-spTransform(mapa_rms_ITB, CRS("+init=epsg:31982"))
+mapa_rms_ITP<-spTransform(mapa_rms_ITP, CRS("+init=epsg:31982"))
+mapa_rms_ITO<-spTransform(mapa_rms_ITO, CRS("+init=epsg:31982"))
+mapa_rms_ITR<-spTransform(mapa_rms_ITR, CRS("+init=epsg:31982"))
+mapa_rms_NOV<-spTransform(mapa_rms_NOV, CRS("+init=epsg:31982"))
+mapa_rms_RIG<-spTransform(mapa_rms_RIG, CRS("+init=epsg:31982"))
+mapa_rms_RIV<-spTransform(mapa_rms_RIV, CRS("+init=epsg:31982"))
+mapa_rms_TAQ<-spTransform(mapa_rms_TAQ, CRS("+init=epsg:31982"))
+mapa_rms_TAU<-spTransform(mapa_rms_TAU, CRS("+init=epsg:31982"))
+
+###################################################################################################################################
+
+mapa_rmd_BDA<-spTransform(mapa_rmd_BDA, CRS("+init=epsg:31982"))
+mapa_rmd_BSI<-spTransform(mapa_rmd_BSI, CRS("+init=epsg:31982"))
+mapa_rmd_BUR<-spTransform(mapa_rmd_BUR, CRS("+init=epsg:31982"))
+mapa_rmd_CAB<-spTransform(mapa_rmd_CAB, CRS("+init=epsg:31982"))
+mapa_rmd_COM<-spTransform(mapa_rmd_COM, CRS("+init=epsg:31982"))
+mapa_rmd_GUA<-spTransform(mapa_rmd_GUA, CRS("+init=epsg:31982"))
+mapa_rmd_ITB<-spTransform(mapa_rmd_ITB, CRS("+init=epsg:31982"))
+mapa_rmd_ITP<-spTransform(mapa_rmd_ITP, CRS("+init=epsg:31982"))
+mapa_rmd_ITO<-spTransform(mapa_rmd_ITO, CRS("+init=epsg:31982"))
+mapa_rmd_ITR<-spTransform(mapa_rmd_ITR, CRS("+init=epsg:31982"))
+mapa_rmd_NOV<-spTransform(mapa_rmd_NOV, CRS("+init=epsg:31982"))
+mapa_rmd_RIG<-spTransform(mapa_rmd_RIG, CRS("+init=epsg:31982"))
+mapa_rmd_RIV<-spTransform(mapa_rmd_RIV, CRS("+init=epsg:31982"))
+mapa_rmd_TAQ<-spTransform(mapa_rmd_TAQ, CRS("+init=epsg:31982"))
+mapa_rmd_TAU<-spTransform(mapa_rmd_TAU, CRS("+init=epsg:31982"))
+
+####################################################################################################################################
+
+```
+
+```{r}
+mapa_CAR_ALPA<-rbind()
+
+```

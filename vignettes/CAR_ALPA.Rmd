@@ -1,0 +1,240 @@
+---
+title: "Comb_Maps_APP"
+author: "JCLAraujo"
+date: "21/09/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+Prepara o script
+```{r, "executa os pacotes", message=FALSE, warning=FALSE, echo=FALSE}
+require(rgdal)
+require(rgeos)
+library(dplyr)
+library(udunits2)
+library(sf)
+library(tidyverse)
+library(ggspatial)
+library(png)
+library(grid)
+library(gtable)
+```
+
+```{r, "carrega os mapas", echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+######carrega os mapas necessários
+mapa_CAR_ANG<-readOGR(dsn="./data/CAR/Angatuba",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_API<-readOGR(dsn="./data/CAR/Apiaí",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_ARA<-readOGR(dsn="./data/CAR/Arandu",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_AVA<-readOGR(dsn="./data/CAR/Avaré",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_BDA<-readOGR(dsn="./data/CAR/Barão de Antonina",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_BCA<-readOGR(dsn="./data/CAR/Bernardino de Campos",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_BOF<-readOGR(dsn="./data/CAR/Bofete",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_BSI<-readOGR(dsn="./data/CAR/Bom Sucesso de Itararé",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_BUR<-readOGR(dsn="./data/CAR/Buri",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_CMA<-readOGR(dsn="./data/CAR/Campina do Monte Alegre",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_CAB<-readOGR(dsn="./data/CAR/Capão Bonito",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_CCE<-readOGR(dsn="./data/CAR/Cerqueira César",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_CHA<-readOGR(dsn="./data/CAR/Chavantes",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_COM<-readOGR(dsn="./data/CAR/Coronel Macedo",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_FAR<-readOGR(dsn="./data/CAR/Fartura",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_GUA<-readOGR(dsn="./data/CAR/Guapiara",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_GUR<-readOGR(dsn="./data/CAR/Guareí",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_IPA<-readOGR(dsn="./data/CAR/Ipaussu",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_ITB<-readOGR(dsn="./data/CAR/Itaberá",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_ITA<-readOGR(dsn="./data/CAR/Itaí",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_IPE<-readOGR(dsn="./data/CAR/Itapetininga",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_ITP<-readOGR(dsn="./data/CAR/Itapeva",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_ITO<-readOGR(dsn="./data/CAR/Itaporanga",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_ITR<-readOGR(dsn="./data/CAR/Itararé",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_ITI<-readOGR(dsn="./data/CAR/Itatinga",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_MAN<-readOGR(dsn="./data/CAR/Manduri",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_NOV<-readOGR(dsn="./data/CAR/Nova Campina",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_PAR<-readOGR(dsn="./data/CAR/Paranapanema",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_PAD<-readOGR(dsn="./data/CAR/Pardinho",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_PIE<-readOGR(dsn="./data/CAR/Piedade",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_PIL<-readOGR(dsn="./data/CAR/Pilar do Sul",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_PIR<-readOGR(dsn="./data/CAR/Piraju",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_RIB<-readOGR(dsn="./data/CAR/Ribeirão Branco",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_RIG<-readOGR(dsn="./data/CAR/Ribeirão Grande",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_RIV<-readOGR(dsn="./data/CAR/Riversul",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_SMA<-readOGR(dsn="./data/CAR/São Miguel Arcanjo",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_SAR<-readOGR(dsn="./data/CAR/Sarapuí",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_SAU<-readOGR(dsn="./data/CAR/Sarutaiá",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_TAG<-readOGR(dsn="./data/CAR/Taguaí",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_TAP<-readOGR(dsn="./data/CAR/Tapiraí",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_TAQ<-readOGR(dsn="./data/CAR/Taquarituba",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_TAU<-readOGR(dsn="./data/CAR/Taquarivaí",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_TEJ<-readOGR(dsn="./data/CAR/Tejupá",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_CAR_TIM<-readOGR(dsn="./data/CAR/Timburi",
+                      layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+
+
+```
+
+```{r}
+mapa_CAR_ALPA<-rbind(mapa_CAR_AVA,mapa_CAR_ARA)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_API)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_ANG)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_BUR)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_BSI)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_BOF)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_BCA)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_BDA)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_CAB)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_CCE)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_CHA)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_CMA)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_COM)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_FAR)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_GUA)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_GUR)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_IPA)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_IPE)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_ITA)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_ITB)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_ITI)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_ITO)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_ITP)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_ITR)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_MAN)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_NOV)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_PAD)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_PAR)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_PIE)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_PIL)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_PIR)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_RIB)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_RIG)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_RIV)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_SAR)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_SAU)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_SMA)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_TAG)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_TAP)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_TAQ)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_TAU)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_TEJ)
+mapa_CAR_ALPA<-rbind(mapa_CAR_ALPA,mapa_CAR_TIM)
+
+writeOGR(mapa_CAR_ALPA, dsn=("./data_use/CAR_ALPA"), "ALL_CAR",
+         driver="ESRI Shapefile", overwrite_layer = TRUE)
+
+```
+
+```{r, "muda a projeção"}
+
+mapa_CAR_ALPA<-st_as_sf(mapa_CAR_ALPA)
+mapa_CAR_ALPA<-st_transform(mapa_CAR_ALPA, 31982)
+
+mapa_CAR_ALPA_sc<-mapa_CAR_ALPA[mapa_CAR_ALPA$CONDICAO_I != "CANCELADO_POR_DECISAO_ADMINISTRATIVA",]
+
+```
+
+```{r}
+
+
+plot_CAR<-ggplot() +
+  geom_sf(data = mapa_CAR_ALPA_sc,
+          aes(fill = "black"),
+          colour = 'black',
+          size = 0.3)+
+  annotation_scale(location = "br")+
+  annotation_north_arrow(height=unit(0.7,"cm"),
+                         width=unit(0.7,"cm"), 
+                         pad_x=unit(1.9,"cm"),
+                         pad_y=unit(0.7,"cm"),
+                         which_north = "true",
+                         location = "br")+
+  scale_fill_manual(values = "#F2F2F2", name= " ",
+                    labels = "Propriedades Registradas") +
+  ggtitle(" ")+
+  labs(x = NULL, y = NULL,
+       caption = "Datum: SIRGAS 2000 / UTM zone 22S \n Fonte: Sistema Nacional de Cadastro Ambiental Rural") +
+    theme(
+        panel.background = element_blank(),
+        plot.title = element_text(size = 20, face = "bold")) +
+
+  coord_sf()
+
+
+logo_NEEDS1<-rasterGrob(readPNG("./figs/NEEDS_1.png"), interpolate = TRUE)
+
+plot_car1<-plot_CAR + 
+  annotation_custom(logo_NEEDS1, ymin = 7279230, 
+                    ymax = 7300000, xmin = 810000, xmax = 881509.7)
+
+
+```
+
+```{r}
+logo_NEEDS2<-rasterGrob(readPNG("./figs/NEEDS_2.png"), interpolate = TRUE)
+new.title<-0
+gt<-0
+# convert to grob
+gt <- ggplotGrob(plot_car1)
+
+# create new title as a tableGrob with separate cells for image & text
+new.title <- gtable(widths = grobWidth(gt),
+       heights = grobHeight(gt)) %>%
+  gtable_add_grob(grobs = logo_NEEDS2, t = 1, l = 1) %>%
+  gtable_add_cols(widths = unit(1, "null"))%>%
+  gtable_add_grob(textGrob(label = "Propriedades com o Cadastro Ambiental Rural no Alto Paranapanema até 2021",
+                           x = unit(0, "npc"), just = "left",
+                           gp=gpar(fontsize=16)),
+                 t = 1, l = 2) %>%
+  # optional: adda fixed amt of space between image & text
+  gtable_add_col_space(width = unit(5, "pt"))
+# dev.off(); grid.draw(new.title)
+
+# assign new title back to gt
+gt$grobs[[which(gt$layout$name == "title")]] <- new.title
+
+grid.draw(gt)
+?textGrob
+```
+

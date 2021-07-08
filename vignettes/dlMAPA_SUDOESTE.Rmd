@@ -1,0 +1,241 @@
+---
+title: "MUNIC_ALL"
+author: "JCLAraujo & PFFernandes"
+date: "29/05/2020"
+output: 
+  
+  html_document:
+    keep_md: True
+editor_options: 
+  chunk_output_type: console
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introdução
+Aqui vamos apenas carregar os mapas baixados da semana passada e plota-los no R
+
+# Passos
+Para conseguir usar o comando para a leitura do shapefile será necessário que rgdal esteja instalado e ativo.
+```{r, eval=FALSE}
+install.packages(c('sp', 'rgdal', 'dplyr', 'XML', 'curl'))
+```
+
+Load packages
+```{r}
+
+library(sp)
+library(rgdal)
+library(dplyr)
+library(XML)
+library(curl)
+```
+
+Script para download dos dados.
+```{r, "Script semana passada corrigido", eval=FALSE}
+#dir.create("./DATA_USE/FBDS_APP_USO_Municipios")
+#dir.create("./DATA_USE/FBDS_Hidrografia")
+
+
+#BARÃO DE ANTONINA
+lista.files.uso.BDA = readLines('http://geo.fbds.org.br/SP/BARAO_DE_ANTONINA/USO/')
+lista.files.app.BDA = readLines('http://geo.fbds.org.br/SP/BARAO_DE_ANTONINA/APP/')
+lista.files.hidro.BDA = readLines('http://geo.fbds.org.br/SP/BARAO_DE_ANTONINA/HIDROGRAFIA/')
+
+#BOM SUCESSO DE ITARARÉ
+lista.files.uso.BSI = readLines('http://geo.fbds.org.br/SP/BOM_SUCESSO_DE_ITARARE/USO/')
+lista.files.app.BSI = readLines('http://geo.fbds.org.br/SP/BOM_SUCESSO_DE_ITARARE/APP/')
+lista.files.hidro.BSI = readLines('http://geo.fbds.org.br/SP/BOM_SUCESSO_DE_ITARARE/HIDROGRAFIA/')
+
+#BURI
+lista.files.uso.BURI = readLines('http://geo.fbds.org.br/SP/BURI/USO/')
+lista.files.app.BURI = readLines('http://geo.fbds.org.br/SP/BURI/APP/')
+lista.files.hidro.BURI = readLines('http://geo.fbds.org.br/SP/BURI/HIDROGRAFIA/')
+
+#CAMPÃO BONITO
+lista.files.uso.CB = readLines('http://geo.fbds.org.br/SP/CAPAO_BONITO/USO/')
+lista.files.app.CB = readLines('http://geo.fbds.org.br/SP/CAPAO_BONITO/APP/')
+lista.files.hidro.CB = readLines('http://geo.fbds.org.br/SP/CAPAO_BONITO/HIDROGRAFIA/')
+
+#CORONEL MACEDO
+lista.files.uso.CM = readLines('http://geo.fbds.org.br/SP/CORONEL_MACEDO/USO/')
+lista.files.app.CM = readLines('http://geo.fbds.org.br/SP/CORONEL_MACEDO/APP/')
+lista.files.hidro.CM = readLines('http://geo.fbds.org.br/SP/CORONEL_MACEDO/HIDROGRAFIA/')
+
+#GUAPIARA
+lista.files.uso.GUAPIARA = readLines('http://geo.fbds.org.br/SP/GUAPIARA/USO/')
+lista.files.app.GUAPIARA = readLines('http://geo.fbds.org.br/SP/GUAPIARA/APP/')
+lista.files.hidro.GUAPIARA = readLines('http://geo.fbds.org.br/SP/GUAPIARA/HIDROGRAFIA/')
+
+#ITABERÁ
+lista.files.uso.ITABERA = readLines('http://geo.fbds.org.br/SP/ITABERA/USO/')
+lista.files.app.ITABERA = readLines('http://geo.fbds.org.br/SP/ITABERA/APP/')
+lista.files.hidro.ITABERA = readLines('http://geo.fbds.org.br/SP/ITABERA/HIDROGRAFIA/')
+
+#ITAPEVA
+lista.files.uso.ITAPEVA = readLines('http://geo.fbds.org.br/SP/ITAPEVA/USO/')
+lista.files.app.ITAPEVA = readLines('http://geo.fbds.org.br/SP/ITAPEVA/APP/')
+lista.files.hidro.ITAPEVA = readLines('http://geo.fbds.org.br/SP/ITAPEVA/HIDROGRAFIA/')
+
+#ITAPORANGA
+lista.files.uso.ITAPORANGA = readLines('http://geo.fbds.org.br/SP/ITAPORANGA/USO/')
+lista.files.app.ITAPORANGA = readLines('http://geo.fbds.org.br/SP/ITAPORANGA/APP/')
+lista.files.hidro.ITAPORANGA = readLines('http://geo.fbds.org.br/SP/ITAPORANGA/HIDROGRAFIA/')
+
+#ITARARÉ
+lista.files.uso.ITARARE = readLines('http://geo.fbds.org.br/SP/ITARARE/USO/')
+lista.files.app.ITARARE = readLines('http://geo.fbds.org.br/SP/ITARARE/APP/')
+lista.files.hidro.ITARARE = readLines('http://geo.fbds.org.br/SP/ITARARE/HIDROGRAFIA/')
+
+#NOVA CAMPINA
+lista.files.uso.NC = readLines('http://geo.fbds.org.br/SP/NOVA_CAMPINA/USO/')
+lista.files.app.NC = readLines('http://geo.fbds.org.br/SP/NOVA_CAMPINA/APP/')
+lista.files.hidro.NC = readLines('http://geo.fbds.org.br/SP/NOVA_CAMPINA/HIDROGRAFIA/')
+
+#RIBEIRÃO GRANDE
+lista.files.uso.RG = readLines('http://geo.fbds.org.br/SP/RIBEIRAO_GRANDE/USO/')
+lista.files.app.RG = readLines('http://geo.fbds.org.br/SP/RIBEIRAO_GRANDE/APP/')
+lista.files.hidro.RG = readLines('http://geo.fbds.org.br/SP/RIBEIRAO_GRANDE/HIDROGRAFIA/')
+
+#RIVERSUL
+lista.files.uso.RIVERSUL = readLines('http://geo.fbds.org.br/SP/RIVERSUL/USO/')
+lista.files.app.RIVERSUL = readLines('http://geo.fbds.org.br/SP/RIVERSUL/APP/')
+lista.files.hidro.RIVERSUL = readLines('http://geo.fbds.org.br/SP/RIVERSUL/HIDROGRAFIA/')
+
+#TAQUARITUBA
+lista.files.uso.TAQUARITUBA = readLines('http://geo.fbds.org.br/SP/TAQUARITUBA/USO/')
+lista.files.app.TAQUARITUBA = readLines('http://geo.fbds.org.br/SP/TAQUARITUBA/APP/')
+lista.files.hidro.TAQUARITUBA = readLines('http://geo.fbds.org.br/SP/TAQUARITUBA/HIDROGRAFIA/')
+
+#TAQUARIVAÍ
+lista.files.uso.TAQUARIVAI = readLines('http://geo.fbds.org.br/SP/TAQUARIVAI/USO/')
+lista.files.app.TAQUARIVAI = readLines('http://geo.fbds.org.br/SP/TAQUARIVAI/APP/')
+lista.files.hidro.TAQUARIVAI = readLines('http://geo.fbds.org.br/SP/TAQUARIVAI/HIDROGRAFIA/')
+
+#ANGATUBA
+lista.files.uso.angatuba = readLines('http://geo.fbds.org.br/SP/ANGATUBA/USO/')
+lista.files.app.angatuba = readLines('http://geo.fbds.org.br/SP/ANGATUBA/APP/')
+lista.files.hidro.angatuba = readLines('http://geo.fbds.org.br/SP/ANGATUBA/HIDROGRAFIA/')
+
+#ARANDU
+lista.files.uso.arandu = readLines('http://geo.fbds.org.br/SP/ARANDU/USO/')
+lista.files.app.arandu = readLines('http://geo.fbds.org.br/SP/ARANDU/APP/')
+lista.files.hidro.arandu = readLines('http://geo.fbds.org.br/SP/ARANDU/HIDROGRAFIA/')
+
+#BERNARDINO DE CAMPOS
+lista.files.uso.bernardino = readLines('http://geo.fbds.org.br/SP/BERNARDINO_DE_CAMPOS/USO/')
+lista.files.app.bernardino = readLines('http://geo.fbds.org.br/SP/BERNARDINO_DE_CAMPOS/APP/')
+lista.files.hidro.bernardino = readLines('http://geo.fbds.org.br/SP/BERNARDINO_DE_CAMPOS/HIDROGRAFIA/')
+
+#CAMPINA DO MONTE ALEGRE
+lista.files.uso.cma = readLines('http://geo.fbds.org.br/SP/CAMPINA_DO_MONTE_ALEGRE/USO/')
+lista.files.app.cma = readLines('http://geo.fbds.org.br/SP/CAMPINA_DO_MONTE_ALEGRE/APP/')
+lista.files.hidro.cma = readLines('http://geo.fbds.org.br/SP/CAMPINA_DO_MONTE_ALEGRE/HIDROGRAFIA/')
+
+#CERQUEIRA CESAR
+lista.files.uso.cerqueira = readLines('http://geo.fbds.org.br/SP/CERQUEIRA_CESAR/USO/')
+lista.files.app.cerqueira = readLines('http://geo.fbds.org.br/SP/CERQUEIRA_CESAR/APP/')
+lista.files.hidro.cerqueira = readLines('http://geo.fbds.org.br/SP/CERQUEIRA_CESAR/HIDROGRAFIA/')
+
+#FARTURA
+lista.files.uso.fartura = readLines('http://geo.fbds.org.br/SP/FARTURA/USO/')
+lista.files.app.fartura = readLines('http://geo.fbds.org.br/SP/FARTURA/APP/')
+lista.files.hidro.fartura = readLines('http://geo.fbds.org.br/SP/FARTURA/HIDROGRAFIA/')
+
+#GUAREÍ
+lista.files.uso.guarei = readLines('http://geo.fbds.org.br/SP/GUAREI/USO/')
+lista.files.app.guarei = readLines('http://geo.fbds.org.br/SP/GUAREI/APP/')
+lista.files.hidro.guarei = readLines('http://geo.fbds.org.br/SP/GUAREI/HIDROGRAFIA/')
+
+#IPAUSSU
+lista.files.uso.ipaussu = readLines('http://geo.fbds.org.br/SP/IPAUSSU/USO/')
+lista.files.app.ipaussu = readLines('http://geo.fbds.org.br/SP/IPAUSSU/APP/')
+lista.files.hidro.ipaussu = readLines('http://geo.fbds.org.br/SP/IPAUSSU/HIDROGRAFIA/')
+
+#ITAÍ
+lista.files.uso.itai = readLines('http://geo.fbds.org.br/SP/ITAI/USO/')
+lista.files.app.itai = readLines('http://geo.fbds.org.br/SP/ITAI/APP/')
+lista.files.hidro.itai = readLines('http://geo.fbds.org.br/SP/ITAI/HIDROGRAFIA/')
+
+#ITAPETININGA
+lista.files.uso.itapetininga = readLines('http://geo.fbds.org.br/SP/ITAPETININGA/USO/')
+lista.files.app.itapetininga = readLines('http://geo.fbds.org.br/SP/ITAPETININGA/APP/')
+lista.files.hidro.itapetininga = readLines('http://geo.fbds.org.br/SP/ITAPETININGA/HIDROGRAFIA/')
+
+#ITATINGA
+lista.files.uso.itatinga = readLines('http://geo.fbds.org.br/SP/ITATINGA/USO/')
+lista.files.app.itatinga = readLines('http://geo.fbds.org.br/SP/ITATINGA/APP/')
+lista.files.hidro.itatinga = readLines('http://geo.fbds.org.br/SP/ITATINGA/HIDROGRAFIA/')
+
+#MANDURI
+lista.files.uso.manduri = readLines('http://geo.fbds.org.br/SP/MANDURI/USO/')
+lista.files.app.manduri = readLines('http://geo.fbds.org.br/SP/MANDURI/APP/')
+lista.files.hidro.manduri = readLines('http://geo.fbds.org.br/SP/MANDURI/HIDROGRAFIA/')
+
+#PARANAPANEMA
+lista.files.uso.paranapanema = readLines('http://geo.fbds.org.br/SP/PARANAPANEMA/USO/')
+lista.files.app.paranapanema = readLines('http://geo.fbds.org.br/SP/PARANAPANEMA/APP/')
+lista.files.hidro.paranapanema = readLines('http://geo.fbds.org.br/SP/PARANAPANEMA/HIDROGRAFIA/')
+
+#PILAR DO SUL
+lista.files.uso.pilar = readLines('http://geo.fbds.org.br/SP/PILAR_DO_SUL/USO/')
+lista.files.app.pilar = readLines('http://geo.fbds.org.br/SP/PILAR_DO_SUL/APP/')
+lista.files.hidro.pilar = readLines('http://geo.fbds.org.br/SP/PILAR_DO_SUL/HIDROGRAFIA/')
+
+#PIRAJU
+lista.files.uso.piraju = readLines('http://geo.fbds.org.br/SP/PIRAJU/USO/')
+lista.files.app.piraju = readLines('http://geo.fbds.org.br/SP/PIRAJU/APP/')
+lista.files.hidro.piraju = readLines('http://geo.fbds.org.br/SP/PIRAJU/HIDROGRAFIA/')
+
+#RIBEIRÃO BRANCO
+lista.files.uso.ribeirao_branco = readLines('http://geo.fbds.org.br/SP/RIBEIRAO_BRANCO/USO/')
+lista.files.app.ribeirao_branco = readLines('http://geo.fbds.org.br/SP/RIBEIRAO_BRANCO/APP/')
+lista.files.hidro.ribeirao_branco = readLines('http://geo.fbds.org.br/SP/RIBEIRAO_BRANCO/HIDROGRAFIA/')
+
+#SÃO MIGUEL ARCANJO
+lista.files.uso.sao_miguel = readLines('http://geo.fbds.org.br/SP/SAO_MIGUEL_ARCANJO/USO/')
+lista.files.app.sao_miguel = readLines('http://geo.fbds.org.br/SP/SAO_MIGUEL_ARCANJO/APP/')
+lista.files.hidro.sao_miguel = readLines('http://geo.fbds.org.br/SP/SAO_MIGUEL_ARCANJO/HIDROGRAFIA/')
+
+#SARUTAIÁ
+lista.files.uso.sarutaia = readLines('http://geo.fbds.org.br/SP/SARUTAIA/USO/')
+lista.files.app.sarutaia = readLines('http://geo.fbds.org.br/SP/SARUTAIA/APP/')
+lista.files.hidro.sarutaia = readLines('http://geo.fbds.org.br/SP/SARUTAIA/HIDROGRAFIA/')
+
+#TAGUAÍ
+lista.files.uso.taguai = readLines('http://geo.fbds.org.br/SP/TAGUAI/USO/')
+lista.files.app.taguai = readLines('http://geo.fbds.org.br/SP/TAGUAI/APP/')
+lista.files.hidro.taguai = readLines('http://geo.fbds.org.br/SP/TAGUAI/HIDROGRAFIA/')
+
+#TEJUPÁ
+lista.files.uso.tejupa = readLines('http://geo.fbds.org.br/SP/TEJUPA/USO/')
+lista.files.app.tejupa = readLines('http://geo.fbds.org.br/SP/TEJUPA/APP/')
+lista.files.hidro.tejupa = readLines('http://geo.fbds.org.br/SP/TEJUPA/HIDROGRAFIA/')
+
+#TIMBURI
+lista.files.uso.timburi = readLines('http://geo.fbds.org.br/SP/TIMBURI/USO/')
+lista.files.app.timburi = readLines('http://geo.fbds.org.br/SP/TIMBURI/APP/')
+lista.files.hidro.timburi = readLines('http://geo.fbds.org.br/SP/TIMBURI/HIDROGRAFIA/')
+
+
+lks.lista.mun<-c(lista.files.uso.BURI,lista.files.app.BURI,lista.files.uso.CB,lista.files.app.CB,lista.files.uso.BDA,lista.files.app.BDA,lista.files.uso.BSI,lista.files.app.BSI,lista.files.uso.CM,lista.files.app.CM,lista.files.uso.GUAPIARA,lista.files.app.GUAPIARA,lista.files.uso.ITABERA,lista.files.app.ITABERA,lista.files.uso.ITAPEVA,lista.files.app.ITAPEVA,lista.files.uso.ITAPORANGA,lista.files.app.ITAPORANGA,lista.files.uso.ITARARE,lista.files.app.ITARARE,lista.files.uso.NC,lista.files.app.NC,lista.files.uso.RG,lista.files.app.RG,lista.files.uso.RIVERSUL,lista.files.app.RIVERSUL,lista.files.uso.TAQUARITUBA,lista.files.app.TAQUARITUBA,lista.files.uso.TAQUARIVAI,lista.files.app.TAQUARIVAI,lista.files.uso.angatuba, lista.files.uso.arandu, lista.files.uso.bernardino, lista.files.uso.cma, lista.files.uso.cerqueira, lista.files.uso.fartura, lista.files.uso.guarei, lista.files.uso.ipaussu, lista.files.uso.itai, lista.files.uso.itapetininga, lista.files.uso.itatinga, lista.files.uso.manduri, lista.files.uso.paranapanema, lista.files.uso.pilar, lista.files.uso.piraju, lista.files.uso.ribeirao_branco, lista.files.uso.sao_miguel, lista.files.uso.sarutaia, lista.files.uso.taguai, lista.files.uso.tejupa, lista.files.uso.timburi, lista.files.app.angatuba, lista.files.app.arandu, lista.files.app.bernardino, lista.files.app.cma, lista.files.app.cerqueira, lista.files.app.fartura, lista.files.app.guarei, lista.files.app.ipaussu, lista.files.app.itai, lista.files.app.itapetininga, lista.files.app.itatinga, lista.files.app.manduri, lista.files.app.paranapanema, lista.files.app.pilar, lista.files.app.piraju, lista.files.app.ribeirao_branco, lista.files.app.sao_miguel, lista.files.app.sarutaia, lista.files.app.taguai, lista.files.app.tejupa, lista.files.app.timburi)
+
+lks.lista.hidro<-c(lista.files.hidro.BURI,lista.files.hidro.CB,lista.files.hidro.BDA,lista.files.hidro.BSI,lista.files.hidro.CM,lista.files.hidro.GUAPIARA,lista.files.hidro.ITABERA,lista.files.hidro.ITAPEVA,lista.files.hidro.ITAPORANGA,lista.files.hidro.ITARARE,lista.files.hidro.NC,lista.files.hidro.RG,lista.files.hidro.RIVERSUL,lista.files.hidro.TAQUARITUBA,lista.files.hidro.TAQUARIVAI, lista.files.hidro.angatuba, lista.files.hidro.arandu, lista.files.hidro.bernardino, lista.files.hidro.cma, lista.files.hidro.cerqueira, lista.files.hidro.fartura, lista.files.hidro.guarei, lista.files.hidro.ipaussu, lista.files.hidro.itai, lista.files.hidro.itapetininga, lista.files.hidro.itatinga, lista.files.hidro.manduri, lista.files.hidro.paranapanema, lista.files.hidro.pilar, lista.files.hidro.piraju, lista.files.hidro.ribeirao_branco, lista.files.hidro.sao_miguel, lista.files.hidro.sarutaia, lista.files.hidro.taguai, lista.files.hidro.tejupa, lista.files.hidro.timburi)
+
+lks.h<-getHTMLLinks(lks.lista.hidro, xpQuery = "//a/@href[contains(., 'SP')]")
+for (i in 1:(length(lks.h))){
+  destf<-paste("./DATA_USE/FBDS_Hidrografia", strsplit(lks.h[i], "/")[[1]][5], sep="/")
+  curl_download((paste("http://geo.fbds.org.br", lks.h[i], sep="")),destfile = destf)
+}
+
+lks<-getHTMLLinks(lks.lista.mun, xpQuery = "//a/@href[contains(., 'SP')]")
+for (i in 1:(length(lks))){
+  destf<-paste("./DATA_USE/FBDS_APP_USO_municipios", strsplit(lks[i], "/")[[1]][5], sep="/")
+  curl_download((paste("http://geo.fbds.org.br", lks[i], sep="")),destfile = destf)
+}
+```
+
+
+
+
