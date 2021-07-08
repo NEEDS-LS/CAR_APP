@@ -21,8 +21,9 @@ Este pacote busca avaliar o passivo ambiental das APPs baseado nos seguintes con
 
 ## Objetivo
 
-Calcular as áreas de preservação permanentes (APPs), as áreas de APPs conservadas e as áreas de APPs degradadas, e consequentemente que podem ser restauradas
+Calcular as áreas de preservação permanentes (APPs), as áreas de APPs conservadas e as áreas de APPs degradadas, e consequentemente que podem ser restauradas baseadas no tamanho das propriedades rurais em módulos fiscais (SiCAR), no tamanho do módulo fiscal, e no uso e cobertura do solo (MapBiomas)
 
 ## Requisitos
 
+As análises são realizadas no ambiente de programação R e se utiliza dos seguintes pacotes: rgdal, raster, rgeos e sf.
 
