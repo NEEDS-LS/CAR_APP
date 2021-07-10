@@ -16,9 +16,9 @@ baixaFBDS<-function(estado, municipio){
   lks.lista<-c(lista.files.uso,lista.files.app)
   lks<-getHTMLLinks(lks.lista, xpQuery = "//a/@href[contains(., estado)]")
   for (i in 1:(length(lks))){
-    destf<-paste("./data_use", strsplit(lks[i], "/")[[1]][5], sep="/")
+    destf<-paste("./data_use", strsplit(lks[i], "/")[[1]][5], sep="/") #Aqui precisa ver se eh data_use mesmo, tvz nao
     curl_download((paste("http://geo.fbds.org.br", lks[i], sep="")),destfile = destf)
-    
+  } 
 }
 
 
