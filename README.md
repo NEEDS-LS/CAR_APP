@@ -18,7 +18,7 @@ Este pacote busca avaliar o passivo ambiental das APPs baseado nos seguintes con
 - Hidrografia e área de APP baseado na restituição da [FBDS](https://www.fbds.org.br/)
 - Tamanho do modulo fiscal (CAR)
 - Mapeamento do uso e cobertura do solo ([FBDS](https://www.fbds.org.br/) ou [MapBiomas](https://mapbiomas.org/))
-- Limites municipais (IBGE, site)
+- Limites municipais ([IBGE](https://www.ibge.gov.br/))
 - 
 
 ## Objetivo
