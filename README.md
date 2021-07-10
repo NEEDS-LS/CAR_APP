@@ -15,10 +15,10 @@ Com a promulgação da Lei de Proteção da Vegetação Nativa (LPVN, ou Novo C�
 Este pacote busca avaliar o passivo ambiental das APPs baseado nos seguintes conjuntos de dados:
 
 - Cadastro Ambiental Rural (CAR), obtido através do [SiCAR](https://www.car.gov.br/)
-- Hidrografia e área de APP baseado na restituição da [FBDS](https://www.fbds.org.br/)
+- Uso do solo e área de APP dados da [FBDS](https://www.fbds.org.br/)
 - Tamanho do modulo fiscal (CAR)
 - Mapeamento do uso e cobertura do solo ([FBDS](https://www.fbds.org.br/) ou [MapBiomas](https://mapbiomas.org/))
-- Limites municipais ([IBGE](https://www.ibge.gov.br/))
+- Limites municipais 2020 ([IBGE](https://www.ibge.gov.br/))
 - 
 
 ## Objetivo
