@@ -1,8 +1,8 @@
 #' Função separa as propriedades por tamanho baseado no numero de modulos fiscais
 #'
 #' Essa função separa as propriedades por tamanho baseado no número de módulos fiscais
-#' @param mapa_CAR ????
-#' @return lista Uma lista de SpatialPolygonsDataFrames
+#' @param mapa_CAR Conjunto de propriedades registradas que serão utilizadas na definição das APPS
+#' @return lista Uma lista de SpatialPolygonsDataFrames referentes as propriedades separados por tamanho.
 #' @export
 #' @examples
 #' separaTamanho<-function(mapa_CAR)

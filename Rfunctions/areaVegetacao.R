@@ -1,8 +1,8 @@
 #' Delimita a área de APP com vegetação nativa
 #'
 #' Essa função delimita a área de APP com vegetação nativa
-#' @param a.veg ????
-#' @return a.veg.area ????
+#' @param a.veg Área delimitada pelo buffer referente ao tamanho da APP com os usos do solo.
+#' @return a.veg.area Retorna o valor, em hectares, das áreas com vegetação dentro do buffer de entrada.
 #' @export
 #' @examples
 #' areaVegetacao<-function(a.veg)

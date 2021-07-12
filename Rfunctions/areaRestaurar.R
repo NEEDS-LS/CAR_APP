@@ -1,8 +1,8 @@
 #' Delimita a área a ser restaurada
 #'
 #' Essa função delimita a área a ser restaurada
-#' @param a.cons ????
-#' @return a.cons.area ????
+#' @param a.cons Área delimitada pelo buffer referente ao tamanho da APP com os usos do solo.
+#' @return a.cons.area Retorna o valor, em hectares, a ser restaurado dentro do buffer de entrada.
 #' @export
 #' @examples
 #' areaRestaurar<-function(a.cons)

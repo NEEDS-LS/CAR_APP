@@ -1,8 +1,8 @@
 #' Dissolve os poligonos intersectados
 #'
-#' Essa função dissolve os poligonos do CAR que por acaso estejam intersectados
+#' Essa função dissolve os poligonos que por acaso estejam intersectados depois dos recortes com o CAR e os buffers
 #' @param buff ????
-#' @return buffdis A área de intersecção dissolvida
+#' @return buffdis Os poligonos com as intersecções dissolvidas
 #' @export
 #' @examples
 #' mergePoli<-function(buff)
