@@ -5,9 +5,14 @@
 #' @return lista Uma lista de SpatialPolygonsDataFrames referentes as propriedades separados por tamanho.
 #' @export
 #' @examples
-#' separaTamanho<-function(mapa_CAR)
-
-
+#' 
+#' props<-separaTamanho(mapa_CAR)
+#' micro<-props[[1]]
+#' peq12<-props[[2]]
+#' peq24<-props[[3]]
+#' media<-props[[4]]
+#' grand<-props[[5]]
+ 
 separaTamanho<-function(mapa_CAR){
   
   mapa_CAR<-gBuffer(mapa_CAR, byid=TRUE, width=0)
