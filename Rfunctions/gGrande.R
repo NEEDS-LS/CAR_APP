@@ -20,23 +20,20 @@ gGrande<-function(mapa_MDA,mapa_RMS,mapa_RMD,mapa_NAS,grande,uso){
   
   mapa_MDA<-mapa_MDA[mapa_MDA@data$AREA_HA > 1,]
   mapa_MDA<-gBuffer(mapa_MDA, byid=TRUE, width=0)
+  mapa_RMD<-gBuffer(mapa_RMD, byid=TRUE, width=0)
   mapa_NAS<-gBuffer(mapa_NAS, byid=TRUE, width = 15)
   
-  if (!is.na(mapa_RMD)){
-    mapa_hidro_pol<-gUnion(mapa_MDA, mapa_RMD)
-  }else{
-    mapa_hidro_pol<-mapa_MDA
-  }
+  mapa_hidro_pol<-gUnion(mapa_MDA, mapa_RMD)
   mapa_hidro<-gUnion(mapa_hidro_pol, mapa_RMS)
   
   grande_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=30)
-  grande_app_original<-gUnion(grande_app_original, nas_b)
+  grande_app_original<-gUnion(grande_app_original, mapa_NAS)
   grande_app_original<-gDifference(grande_app_original, mapa_hidro_pol)
   
   grande_app<-gIntersection(grande_app_original, grande)
   grande_app<-gBuffer(grande_app, byid=TRUE, width=0)
   grande_app<-raster::intersect(mapa_USO, grande_app)
-  grande_app<-grande_app[grande_app@data$CLASSE_USO!="água",]
+  #grande_app<-grande_app[grande_app@data$CLASSE_USO!="água",]
   
   return(grande_app)
 }

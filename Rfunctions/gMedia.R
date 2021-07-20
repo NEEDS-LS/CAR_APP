@@ -20,25 +20,22 @@ gMedia<-function(mapa_MDA,mapa_RMS,mapa_RMD,mapa_NAS,media,uso){
   
   mapa_MDA<-mapa_MDA[mapa_MDA@data$AREA_HA > 1,]
   mapa_MDA<-gBuffer(mapa_MDA, byid=TRUE, width=0)
+  mapa_RMD<-gBuffer(mapa_RMD, byid=TRUE, width=0)
   mapa_NAS<-gBuffer(mapa_NAS, byid=TRUE, width = 15)
   
-  if (!is.na(mapa_RMD)){
-    mapa_hidro_pol<-gUnion(mapa_MDA, mapa_RMD)
-  }else{
-    mapa_hidro_pol<-mapa_MDA
-  }
+  mapa_hidro_pol<-gUnion(mapa_MDA, mapa_RMD)
   mapa_hidro<-gUnion(mapa_hidro_pol, mapa_RMS)
   
   media_poli<-gBuffer(mapa_hidro_pol, byid=TRUE, width=30)
   media_rios<-gBuffer(mapa_RMS, byid=TRUE, width=20)
   media_app_original<-gUnion(media_poli, media_rios)
-  media_app_original<-gUnion(media_app_original, nas_b)
+  media_app_original<-gUnion(media_app_original, mapa_NAS)
   media_app_original<-gDifference(media_app_original, mapa_hidro_pol)
   
   media_app<-gIntersection(media_app_original, media)
   media_app<-gBuffer(media_app, byid=TRUE, width=0)
   media_app<-raster::intersect(mapa_USO, media_app)
-  media_app<-media_app[media_app@data$CLASSE_USO!="água",]
+  #media_app<-media_app[media_app@data$CLASSE_USO!="água",]
   
   return(media_app)
 }

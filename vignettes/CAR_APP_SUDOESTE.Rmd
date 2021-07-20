@@ -39,7 +39,7 @@ install.packages(new.packages)
 require(raster)
 require(rgdal)
 require(rgeos)
-#library(udunits2) Em alguns casos é necessário carregar este pacote manualmente
+library(udunits2) #Em alguns casos é necessário carregar este pacote manualmente
 require(sf)
 ```
 
@@ -114,19 +114,19 @@ Dah com problema no sistema de coordenadas geograficas, e isso pode ser problema
 ```{r, "carrega os mapas", echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 
 ######carrega os mapas necessários, trocar pelos mapas corretos para cada município
-mapa_CAR<-readOGR(dsn="./data_use",
-                  layer="ALL_CAR", use_iconv=TRUE, encoding="UTF-8")
-mapa_MDA<-readOGR(dsn="./data/FBDS_Hidrografia",
-                  layer="SP_3522307_MASSAS_DAGUA", use_iconv=TRUE,encoding="UTF-8")
-mapa_NAS<-readOGR(dsn="./data/FBDS_Hidrografia",
-                  layer="SP_3522307_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
-mapa_RMS<-readOGR(dsn="./data/FBDS_Hidrografia",
-                  layer="SP_3522307_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
-mapa_RMD<-readOGR(dsn="./data/FBDS_Hidrografia",
-                  layer="SP_3522307_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
-mapa_USO<-readOGR(dsn="./data/FBDS_APP_USO_Municipios",
-                  layer="SP_3522307_USO", use_iconv=TRUE, encoding="UTF-8")
-mapa_MUN<-readOGR(dsn="./data/LIMITE_MUN_JUNTOS",
+mapa_CAR<-readOGR(dsn="./data_use/CAR/Campina do Monte Alegre",
+                  layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
+mapa_MDA<-readOGR(dsn="./data_use/FBDS_Hidrografia",
+                  layer="SP_3509452_MASSAS_DAGUA", use_iconv=TRUE,encoding="UTF-8")
+mapa_NAS<-readOGR(dsn="./data_use/FBDS_Hidrografia",
+                  layer="SP_3509452_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
+mapa_RMS<-readOGR(dsn="./data_use/FBDS_Hidrografia",
+                  layer="SP_3509452_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
+mapa_RMD<-readOGR(dsn="./data_use/FBDS_Hidrografia",
+                  layer="SP_3509452_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
+mapa_USO<-readOGR(dsn="./data_use/FBDS_APP_USO_Municipios",
+                  layer="SP_3509452_USO", use_iconv=TRUE, encoding="UTF-8")
+mapa_MUN<-readOGR(dsn="./data_use/LIMITE_MUN_JUNTOS",
                   layer="muni_ALPA", use_iconv=TRUE, encoding="UTF-8")
 
 ```
@@ -138,14 +138,23 @@ Tah com problema no Sistema de coordenadas, precisa corrigir.
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
   #reprojetar os obj para a mesma projeção (trocar para a mais adequada)
 #+proj=utm +zone=22 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
-    mapa_CAR <- spTransform(mapa_CAR, CRS("+init=epsg:31982"))
-    mapa_USO <- spTransform(mapa_USO, CRS("+init=epsg:31982"))
-    mapa_RMD <- spTransform(mapa_RMD, CRS("+init=epsg:31982"))
-    mapa_RMS <- spTransform(mapa_RMS, CRS("+init=epsg:31982"))
-    mapa_MDA <- spTransform(mapa_MDA, CRS("+init=epsg:31982"))
-    mapa_NAS <- spTransform(mapa_NAS, CRS("+init=epsg:31982"))
-    mapa_GEO <- spTransform(mapa_GEO, CRS("+init=epsg:31982"))
-    mapa_MUN <- spTransform(mapa_MUN, CRS("+init=epsg:31982"))
+
+CRS_proj<-function(obj2Reproj, crs_code){
+  setcrs<-st_crs(crs_code)
+  wkt_crs<-st_crs(setcrs$wkt)
+  sp_to_sf<-st_as_sf(obj2Reproj)
+  sp_to_sf<-st_transform(sp_to_sf, wkt_crs)
+  sf_to_sp<-as(sp_to_sf, "Spatial")
+  return(sf_to_sp)
+}
+
+mapa_CAR <- CRS_proj(mapa_CAR, 31982)
+mapa_USO <- CRS_proj(mapa_USO, 31982)
+mapa_RMD <- CRS_proj(mapa_RMD, 31982)
+mapa_RMS <- CRS_proj(mapa_RMS, 31982)
+mapa_MDA <- CRS_proj(mapa_MDA, 31982)
+mapa_NAS <- CRS_proj(mapa_NAS, 31982)
+mapa_MUN <- CRS_proj(mapa_MUN, 31982)
 ```
 
 Seleciona massas d'água maiores do que 1 ha para gerar APP
@@ -153,6 +162,7 @@ Seleciona massas d'água maiores do que 1 ha para gerar APP
 #Seleciona as massas d'água maiores que 1ha
 mapa_MDA<-mapa_MDA[mapa_MDA@data$AREA_HA > 1,]
 mapa_MDA<-gBuffer(mapa_MDA, byid=TRUE, width=0)
+mapa_RMD<-gBuffer(mapa_RMD, byid=TRUE, width=0)
 ```
 
 
@@ -177,9 +187,9 @@ mapa_hidro<-gUnion(mapa_hidro_pol, mapa_RMS)
 Não entendi o codigo abaixo, mas tenho uma vaga ideia do que ela deva estar fazendo.
 ```{r}
 mapa_MUN[is.na(mapa_MUN@data$NOME_MUNI)]<-"Óleo"#essa linha é especifica para os dados do Alto Paranapanema.
-limite_mun<-mapa_MUN[mapa_MUN@data$NOME_MUN == "Itapetininga",] #Esta linha se refere ao limite do município.
-mapa_hidro<-gIntersection(mapa_hidro, limite_mun)#restringe os corpos d'água dentro dos municipios (houve casos que a hidrográfia da FBDS extrapolava os limites do município)
-mapa_CAR<-gIntersection(mapa_CAR, limite_mun)#No caso do Alto Paranapanema, todos os CARs foram colocados em um mesmo shp, de forma que quando uma propriedade ultrapasse os limites de um município ele seja contabilizado quando o próximo for recortado.
+limite_mun<-mapa_MUN[mapa_MUN@data$NOME_MUN == "Campina do Monte Alegre",] #Esta linha se refere ao limite do município.
+#mapa_hidro<-gIntersection(mapa_hidro, limite_mun)#restringe os corpos d'água dentro dos municipios (houve casos que a hidrográfia da FBDS extrapolava os limites do município)
+#mapa_CAR<-gIntersection(mapa_CAR, limite_mun)#No caso do Alto Paranapanema, todos os CARs foram colocados em um mesmo shp, de forma que quando uma propriedade ultrapasse os limites de um município ele seja contabilizado quando o próximo for recortado.
 ```
 
 Função que Separa as propriedades por tamanhos já virou função separada e vai ser substituida pelo code chunk abaixo

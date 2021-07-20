@@ -19,23 +19,20 @@ gPeq_1_2<-function(mapa_MDA,mapa_RMS,mapa_RMD,mapa_NAS,pequeno_1_2,uso){
   
   mapa_MDA<-mapa_MDA[mapa_MDA@data$AREA_HA > 1,]
   mapa_MDA<-gBuffer(mapa_MDA, byid=TRUE, width=0)
+  mapa_RMD<-gBuffer(mapa_RMD, byid=TRUE, width=0)
   mapa_NAS<-gBuffer(mapa_NAS, byid=TRUE, width = 15)
   
-  if (!is.na(mapa_RMD)){
-    mapa_hidro_pol<-gUnion(mapa_MDA, mapa_RMD)
-  }else{
-    mapa_hidro_pol<-mapa_MDA
-  }
+  mapa_hidro_pol<-gUnion(mapa_MDA, mapa_RMD)
   mapa_hidro<-gUnion(mapa_hidro_pol, mapa_RMS)
   
   pequeno12_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=8)
-  pequeno12_app_original<-gUnion(pequeno12_app_original, nas_b)
+  pequeno12_app_original<-gUnion(pequeno12_app_original, mapa_NAS)
   pequeno12_app_original<-gDifference(pequeno12_app_original, mapa_hidro_pol)
   
   pequeno12_app<-gIntersection(pequeno12_app_original, pequeno_1_2)
   pequeno12_app<-gBuffer(pequeno12_app, byid=TRUE, width=0)
   pequeno12_app<-raster::intersect(uso, pequeno12_app)
-  pequeno12_app<-pequeno12_app[pequeno12_app@data$CLASSE_USO!="água",]
+  #pequeno12_app<-pequeno12_app[pequeno12_app@data$CLASSE_USO!="água",]
   
   return(pequeno12_app)
 }
