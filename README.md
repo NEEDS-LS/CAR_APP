@@ -14,7 +14,7 @@ Link para o Wiki provisório no Google Docs: https://docs.google.com/document/d/
 
 ## Introdução
 
-Com a promulgação da Lei de Proteção da Vegetação Nativa (Lei No. 12.651, de 25 de maio de 2012, LPVN, ou Novo Código Florestal) em 2012, a delimitação das Áreas de Preservação Permanentes (APPs) que encontram-se degradadas, e desta maneira, são passíveis de serem restauradas, se tornou dependente do tamanho das propriedades (Número de módulos fiscais). Consequentemente, algumas informações adicionais são necessárias para a delimitação das áreas passíveis de serem restauradas, entre elas: o tamanho do módulo fiscal (varia de município para município) e o tamanho da propriedade.
+Com a promulgação da Lei de Proteção da Vegetação Nativa ([Lei No. 12.651, de 25 de maio de 2012](http://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12651.htm), LPVN, ou Novo Código Florestal) em 2012, a delimitação das Áreas de Preservação Permanentes (APPs) que encontram-se degradadas, e desta maneira, são passíveis de serem restauradas, se tornou dependente do tamanho das propriedades (Número de módulos fiscais). Consequentemente, algumas informações adicionais são necessárias para a delimitação das áreas passíveis de serem restauradas, entre elas: o tamanho do módulo fiscal (varia de município para município) e o tamanho da propriedade.
 
 Este pacote busca avaliar o passivo ambiental das APPs baseado nos seguintes conjuntos de dados disponíveis na internet:
 
