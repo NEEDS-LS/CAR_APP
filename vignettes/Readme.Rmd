@@ -2,17 +2,18 @@
 title: "Pacote CAR_APP"
 author: "NEEDS"
 date: "07/2021"
-output: 
+output:
   html_document:
-     
     includes:
       after_body: footer.html
-    keep_md: True
-    toc: True
+    keep_md: yes
+    toc: yes
     toc_float:
-      collapsed: false
-      smooth_scroll: false
-editor_options: 
+      collapsed: no
+      smooth_scroll: no
+  pdf_document:
+    toc: yes
+editor_options:
   chunk_output_type: console
 ---
 
@@ -27,7 +28,6 @@ knitr::knit_hooks$set(inline = inline_hook)
 
 ## Pacote CAR_APP
 
-##Introdução
 Com a promulgação da Lei de Proteção da Vegetação Nativa (LPVN, ou Novo Código Florestal) em 2012, a delimitação das Áreas de Preservação Permanentes (APPs) que encontram-se degradadas, e desta maneira, são passíveis de serem restauradas, depende do tamanho das propriedades (Número de módulos fiscais). Consequentemente, algumas informações adicionais são necessárias para a delimitação das áreas passíveis de serem restauradas, entre elas: o tamanho do módulo fiscal (varia de município para município).
 
 Este pacote tem como pretexto o cálculo das APPs de cursos d'água de acordo com o tamanho das propriedades cadastradas no Sistema Nacional de Cadastro Ambiental Rural (SICAR), está plataforma se encontra acessível neste link <https://www.car.gov.br/publico/imoveis/index>.
@@ -39,7 +39,7 @@ Para o funcionamento correto das funções disponíveis no CAR_APP os pacotes *r
 
 
 ```{r, "instala os pacotes", echo=TRUE, eval=FALSE}
-list.of.packages <- c("rgdal", "raster", "rgeos", "sf")
+list.of.packages <- c("rgdal", "raster", "rgeos", "sf", "abjuntils")
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) 
@@ -48,16 +48,16 @@ install.packages(new.packages)
 ```
 
 ```{r, echo=FALSE,warning=FALSE,message=FALSE}
-source("../Rfunctions/gMicro.R")
-source("../Rfunctions/gPeq_1_2.R")
-source("../Rfunctions/gPeq_2_4.R")
-source("../Rfunctions/gMedia.R")
-source("../Rfunctions/gGrande.R")
-source("../Rfunctions/areaVegetacao.R")
-source("../Rfunctions/areaRestaurar.R")
-source("../Rfunctions/CRS_proj.R")
-source("../Rfunctions/mergePoli.R")
-source("../Rfunctions/separaTamanho.R")
+source("./Rfunctions/gMicro.R")
+source("./Rfunctions/gPeq_1_2.R")
+source("./Rfunctions/gPeq_2_4.R")
+source("./Rfunctions/gMedia.R")
+source("./Rfunctions/gGrande.R")
+source("./Rfunctions/areaVegetacao.R")
+source("./Rfunctions/areaRestaurar.R")
+source("./Rfunctions/CRS_proj.R")
+source("./Rfunctions/mergePoli.R")
+source("./Rfunctions/separaTamanho.R")
 
 ```
 
@@ -70,6 +70,7 @@ require(raster)
 require(rgdal)
 require(rgeos)
 require(sf)
+require(abjutils)
 ```
 
 Com os pacotes carregados, é necessário carregar os dados para a execução das funções, como mostrado abaixo com o exemplo do município de Campina do Monte Alegre:
@@ -78,25 +79,25 @@ Com os pacotes carregados, é necessário carregar os dados para a execução da
 
 ######carrega os mapas necessários, trocar pelos mapas corretos para a sua análise
 #mapa_CAR = mapa com as informações do SICAR
-mapa_CAR<-readOGR(dsn="../data_use/CAR/Campina do Monte Alegre",
+mapa_CAR<-readOGR(dsn="./data_use/CAR/Campina do Monte Alegre",
                   layer="AREA_IMOVEL", use_iconv=TRUE, encoding="UTF-8")
 #mapa_MDA = mapa com as massas d'água disponibilizado pela FBDS
-mapa_MDA<-readOGR(dsn="../data_use/FBDS_Hidrografia",
+mapa_MDA<-readOGR(dsn="./data_use/FBDS_Hidrografia",
                   layer="SP_3509452_MASSAS_DAGUA", use_iconv=TRUE,encoding="UTF-8")
 #mapa_NAS = mapa com as nascentes fornecido disponibilizado FBDS
-mapa_NAS<-readOGR(dsn="../data_use/FBDS_Hidrografia",
+mapa_NAS<-readOGR(dsn="./data_use/FBDS_Hidrografia",
                   layer="SP_3509452_NASCENTES", use_iconv=TRUE, encoding="UTF-8")
 #mapa_RMS = mapa com os rios de margem simples disponibilizado pela FBDS
-mapa_RMS<-readOGR(dsn="../data_use/FBDS_Hidrografia",
+mapa_RMS<-readOGR(dsn="./data_use/FBDS_Hidrografia",
                   layer="SP_3509452_RIOS_SIMPLES", use_iconv=TRUE, encoding="UTF-8")
 #mapa_RMD = mapa com os rios de margem dupla disponibilzados pela FBDS
-mapa_RMD<-readOGR(dsn="../data_use/FBDS_Hidrografia",
+mapa_RMD<-readOGR(dsn="./data_use/FBDS_Hidrografia",
                   layer="SP_3509452_RIOS_DUPLOS", use_iconv=TRUE, encoding="UTF-8")
 #mapa_USO = mapa com o uso do solo da região em análise, pode ser da FBDS ou MapBiomas
-mapa_USO<-readOGR(dsn="../data_use/FBDS_APP_USO_Municipios",
+mapa_USO<-readOGR(dsn="./data_use/FBDS_APP_USO_Municipios",
                   layer="SP_3509452_USO", use_iconv=TRUE, encoding="UTF-8")
 #mapa_MUN = mapa com o limite do(s) município(s) em análise
-mapa_MUN<-readOGR(dsn="../data_use/LIMITE_MUN_JUNTOS",
+mapa_MUN<-readOGR(dsn="./data_use/LIMITE_MUN_JUNTOS",
                   layer="muni_ALPA", use_iconv=TRUE, encoding="UTF-8")
 ```
 
@@ -107,7 +108,7 @@ mapa_MDA<-readOGR(dsn="../data_use/FBDS_Hidrografia",
                   layer="SP_3509452_MASSAS_DAGUA", use_iconv=TRUE,encoding="UTF-8")
 ```
 
-Caso isso ocorra o processo de mudança da projeção poderá ser feita pela função *CRS_proj()*, tendo como entrada o CRS destino e o objeto a ser reprojetado. Caso a projeção do objeto esteja correta mas o warning foi exibido ainda é necessário reprojeta-lo para o CRS desejado. Neste exemplo usaremos o SIRGAS 2000/UTM 22S (31982).
+Caso isso ocorra o processo de mudança da projeção poderá ser feita pela função *CRS_proj()*, tendo como entrada o CRS destino e o objeto a ser reprojetado. Caso a projeção do objeto esteja correta mas o warning foi exibido ainda é necessário reprojeta-lo para o CRS desejado. Neste exemplo usaremos o SIRGAS 2000/UTM 22S (EPSG: 31982).
 
 ```{r, echo=TRUE, warning=FALSE, message=FALSE}
 mapa_CAR <- CRS_proj(mapa_CAR, 31982)
@@ -119,7 +120,7 @@ mapa_NAS <- CRS_proj(mapa_NAS, 31982)
 mapa_MUN <- CRS_proj(mapa_MUN, 31982)
 ```
 
-Feito isso começaremos a tratar possíveis erros que podem surgir com os dados, as *self_intersections* são uma delas. Ocorre quando um poligono é intersectado por ele em algum ponto e é resolvido quando executado um buffer de comprimento 0, geralmente é necessário no objeto contendo o uso do solo que será utilizado. Também é interessante remover os CAR registrado com situação classificada como "cancelado por decisão administrativa", diminuindo consideravelmente o número de sobreposições.
+Feito isso começaremos a tratar possíveis problemas de topologia (ex. *self_intersections*). Ocorre quando um poligono é intersectado por ele em algum ponto e é resolvido quando executado um buffer de comprimento 0, geralmente é necessário no objeto contendo o uso do solo que será utilizado. Também é interessante remover os CARs registrados com situação classificada como "cancelado por decisão administrativa", diminuindo consideravelmente o número de sobreposições.
 
 ```{r, echo=TRUE, warning=FALSE, message=FALSE}
 #Faz o buffer de comprimento 0 para remoção de intersecções em um mesmo polígono
@@ -133,7 +134,7 @@ mapa_MUN[is.na(mapa_MUN@data$NOME_MUNI)]<-"Óleo"
 mapa_MUN<-mapa_MUN[mapa_MUN@data$NOME_MUN == "Campina do Monte Alegre",]
 ```
 
-A partir daqui executaremos as funções deste pacote, começando pela função *separaTamanho()*. A entrada nesta função é apenas o objeto na qual as informações do CAR estão mantidos e o retorno é uma lista com os tamanhos separados de acordo com o número de módulos fiscais separados nos grupos: micro, entre 1 e 2 módulos, entre 2 e 4 módulos, médias e grandes.
+A partir daqui executaremos as funções deste pacote, começando pela função *separaTamanho()*. O parâmetro nesta função é apenas o objeto na qual as informações do CAR estão mantidos e o retorno é uma lista com os tamanhos separados de acordo com o número de módulos fiscais divididos nos grupos: micro, entre 1 e 2 módulos, entre 2 e 4 módulos, médias e grandes.
 
 ```{r, echo=TRUE, warning=FALSE, message=FALSE}
 propriedades<-separaTamanho(mapa_CAR)
@@ -145,9 +146,7 @@ media<-propriedades[[4]]
 grand<-propriedades[[5]]
 ```
 
-Agora podemos executar as funções que, de fato, vão criar os buffers e recortar o uso de solo dentro das áreas definidas para restauração para cada classe de propriedades.Essas funções demandam um poder de processamento consideravel e podem demorar grande quantidades de tempo.
-
-OBS: Caso o município que está sendo analisado não tenha uma das hidrográfias coloque o valor como "NA". 
+Agora podemos executar as funções que, de fato, vão criar os buffers e recortar o uso de solo dentro das áreas definidas para restauração para cada classe de propriedades.Essas funções demandam um poder de processamento consideravel e podem demorar.
 
 ```{r, echo=TRUE, warning=FALSE, message=FALSE}
 REST_micro<-gMicro(mapa_MDA, mapa_RMS, mapa_RMD, mapa_NAS, micro, mapa_USO)
@@ -156,6 +155,21 @@ REST_peq24<-gPeq_2_4(mapa_MDA, mapa_RMS, mapa_RMD, mapa_NAS, peq24, mapa_USO)
 REST_media<-gMedia(mapa_MDA, mapa_RMS, mapa_RMD, mapa_NAS, media, mapa_USO)
 REST_grand<-gGrande(mapa_MDA, mapa_RMS, mapa_RMD, mapa_NAS, grand, mapa_USO)
 ```
+
+```{r, echo=FALSE, eval=FALSE}
+REST_micro$CLASSE_PROP<-"micro"
+REST_peq12$CLASSE_PROP<-"pequena 1 e 2 modulos"
+REST_peq24$CLASSE_PROP<-"pequena 2 e 4 modulos"
+REST_media$CLASSE_PROP<-"media"
+REST_grand$CLASSE_PROP<-"grande"
+lista<-c(REST_micro, REST_peq12, REST_peq24, REST_media, REST_grand)
+mapa_geral<-do.call("rbind",lista)
+
+plot(mapa_geral)
+writeOGR(mapa_geral, dsn=("./data_use/REST_APP"), "REST_APP_Angatuba", 
+         driver="ESRI Shapefile", overwrite_layer = TRUE)
+```
+
 
 Como resultado temos o uso do solo dentro do buffer para restauração e podemos calcular a quantidade de área com vegetação nativa e o que precisa ser recuperado.
 
@@ -166,8 +180,11 @@ micro_vegetacao<-areaVegetacao(REST_micro)
 micro_restaurar<-areaRestaurar(REST_micro)
 ```
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 micro_vegetacao
+```
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 micro_restaurar
 ```
 
@@ -178,8 +195,11 @@ peq12_vegetacao<-areaVegetacao(REST_peq12)
 peq12_restaurar<-areaRestaurar(REST_peq12)
 ```
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 peq12_vegetacao
+```
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 peq12_restaurar
 ```
 
@@ -190,8 +210,11 @@ peq24_vegetacao<-areaVegetacao(REST_peq24)
 peq24_restaurar<-areaRestaurar(REST_peq24)
 ```
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 peq24_vegetacao
+```
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 peq24_restaurar
 ```
 
@@ -202,8 +225,11 @@ media_vegetacao<-areaVegetacao(REST_media)
 media_restaurar<-areaRestaurar(REST_media)
 ```
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 media_vegetacao
+```
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 media_restaurar
 ```
 
@@ -214,7 +240,10 @@ grande_vegetacao<-areaVegetacao(REST_grand)
 grande_restaurar<-areaRestaurar(REST_grand)
 ```
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 grande_vegetacao
+```
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 grande_restaurar
 ```

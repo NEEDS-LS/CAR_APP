@@ -8,7 +8,6 @@
 #' @param mapa_RMD Mapa da hidrográfia referente aos Rios de margem dupla.
 #' @param mapa_NAS Mapa da hidrográfia referente as Nascentes.
 #' @param micro Conjunto de propriedades caracterizadas como micro, resultantes da função 
-#' @param lim Limite do município em análise.
 #' @param uso Mapa do uso do solo do local
 #' @return Objeto SpatialPolygonsDataFrames referente ao uso do solo dentro do buffer criado
 #' @export
@@ -16,24 +15,42 @@
 #' gHidro<-function(mapa_MDA,mapa_RMS,mapa_RMD,mapa_NAS,micro,uso)
 #' 
 
-gMicro<-function(mapa_MDA,mapa_RMS,mapa_RMD,mapa_NAS,micro,uso){
+gMicro<-function(mapa_MDA,mapa_RMS,mapa_RMD = NULL,mapa_NAS,micro,uso){
   
-  mapa_MDA<-mapa_MDA[mapa_MDA$AREA_HA > 1,]
-  mapa_MDA<-gBuffer(mapa_MDA, byid=TRUE, width=0)
-  mapa_RMD<-gBuffer(mapa_RMD, byid=TRUE, width=0)
+  if(!is.null(mapa_RMD)){
+    mapa_RMD<-gBuffer(mapa_RMD, byid=TRUE, width=0)
+  
+    mapa_MDA<-mapa_MDA[mapa_MDA@data$AREA_HA > 1,]
+  
+    if(length(mapa_MDA@polygons)==0){ 
+      mapa_hidro_pol<-mapa_RMD
+      mapa_hidro<-gUnion(mapa_hidro_pol, mapa_RMS)
+    }else{
+      mapa_MDA<-gBuffer(mapa_MDA, byid=TRUE, width=0)
+      mapa_hidro_pol<-gUnion(mapa_MDA, mapa_RMD)
+      mapa_hidro<-gUnion(mapa_hidro_pol, mapa_RMS)
+  }}else{
+    mapa_MDA<-mapa_MDA[mapa_MDA@data$AREA_HA > 1,]
+    if(length(mapa_MDA@polygons)==0){ 
+      mapa_hidro<-mapa_RMS
+      mapa_hidro_pol<-NULL
+    }else{
+      mapa_MDA<-gBuffer(mapa_MDA, byid=TRUE, width=0)
+      mapa_hidro_pol<-mapa_MDA
+      mapa_hidro<-gUnion(mapa_hidro_pol, mapa_RMS)
+    }
+  }
+
   mapa_NAS<-gBuffer(mapa_NAS, byid=TRUE, width = 15)
-  
-  mapa_hidro_pol<-gUnion(mapa_MDA, mapa_RMD)
-  mapa_hidro<-gUnion(mapa_hidro_pol, mapa_RMS)
   
   micro_app_original<-gBuffer(mapa_hidro, byid=TRUE, width=5)
   micro_app_original<-gUnion(micro_app_original, mapa_NAS)
+  if(!is.null(mapa_hidro_pol)){
   micro_app_original<-gDifference(micro_app_original, mapa_hidro_pol)
-  
+  }
   micro_app<-gIntersection(micro_app_original, micro)
   micro_app<-gBuffer(micro_app, byid=TRUE, width=0)
   micro_app<-raster::intersect(uso, micro_app)
-  micro_app<-micro_app[micro_app$CLASSE_USO!="água",]
   
   return(micro_app)
 }

@@ -1,7 +1,7 @@
 #' Delimita a área a ser restaurada
 #'
-#' Essa função delimita a área a ser restaurada a partir do objeto resultante da aplicação das funções para recorte do uso dentro das APPs
-#' @param a.cons Área delimitada pelo buffer referente ao tamanho da APP com os usos do solo.
+#' Essa função delimita a área a ser restaurada a partir do objeto resultante da aplicação das funções para recorte do uso dentro das APPs, esta função é especifica para os dados de uso do solo disponiveis na FBDS
+#' @param clipped_use Área delimitada pelo buffer referente ao tamanho da APP com os usos do solo.
 #' @return a.cons.area Retorna o valor, em hectares, a ser restaurado dentro do buffer de entrada.
 #' @export
 #' @examples
@@ -13,12 +13,15 @@
 #' #area = Valor em hectares a ser restaurado.
 
 
-areaRestaurar<-function(a.cons){
-  a.cons<-a.cons[a.cons@data$CLASSE_USO!="formação florestal" & 
-                   a.cons@data$CLASSE_USO!="formação não florestal",]
+areaRestaurar<-function(clipped_use){
   
-  a.cons.merge<-mergePoli(a.cons)
+  clipped_use$CLASSE_USO<-rm_accent(clipped_use$CLASSE_USO)
   
-  a.cons.area<-gArea(a.cons.merge)/10000
-  return(a.cons.area)
+  clipped_use<-clipped_use[clipped_use$CLASSE_USO!="formacao florestal" & 
+                             clipped_use$CLASSE_USO!="formacao nao florestal",]
+  
+  clipped_use<-mergePoli(clipped_use)
+  
+  clipped_use<-gArea(clipped_use)/10000
+  return(clipped_use)
 }
