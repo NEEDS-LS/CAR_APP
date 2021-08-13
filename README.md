@@ -31,7 +31,7 @@ Calcular as áreas de preservação permanentes (APPs), as áreas de APPs conser
 
 ## Requisitos
 
-As análises são realizadas no ambiente de programação R e se utiliza dos seguintes pacotes: rgdal, raster, rgeos e sf.
+As análises são realizadas no ambiente de programação R e se utiliza dos seguintes pacotes: rgdal, raster, rgeos, abjutils e sf.
 
 ## Resultados
 
