@@ -1,6 +1,10 @@
 # CAR_APP v 0.0.1.9000: Calcula as Áreas de Preservação Permanente (APPs) Hídricas, as APPs que devem ser restauradas baseadas no tamanho das propriedades e as APPs protegidas.
 
-Em construção!!!!
+O projeto já pode ser encontrado como um pacote em https://github.com/NEEDS-LS/CARapp Apesar de permanecer em construção!!!!
+
+Para baixar o pacote e explorar as funções use o pacote devtools usando o seguinte código:
+
+devtools::install_github("NEEDS-LS/CARapp")
 
 Link para o Wiki provisório no Google Docs: https://docs.google.com/document/d/1EQhcSTetLeN9m-Wg2VPWHpkp6hFaofIdgo6WmDVk0KA/edit?usp=sharing
 
